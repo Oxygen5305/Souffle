@@ -100,7 +100,7 @@ source_group("Executable" FILES ${EXECUTABLE_FILES})
 add_library(emtg ${EMTG_FILES})
 set_property(TARGET emtg PROPERTY CXX_STANDARD 17)
 set_property(TARGET emtg PROPERTY POSITION_INDEPENDENT_CODE ON)
-# UnoMTG: Uno_C_API.h is needed by SouffleApi.h. The Uno *library* is never linked - it is
+# SOUFFLE: Uno_C_API.h is needed by SouffleApi.h. The Uno *library* is never linked - it is
 # loaded at runtime (see src/InnerLoop/SouffleApi.cpp) because MSVC cannot link Uno's MinGW
 # import library.
 if (SOUFFLE_WITH_UNO)

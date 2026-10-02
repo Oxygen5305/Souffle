@@ -73,7 +73,7 @@ option(BUILD_PYHARDWARE "Build PyHardware" OFF)
 
 #---------------------------- Uno Items -------------------------------------
 # Uno replaces SNOPT as EMTG's NLP solver. Uno ships as a MinGW shared library whose
-# import library MSVC cannot link, so UnoMTG drives it through dynamic loading
+# import library MSVC cannot link, so SOUFFLE drives it through dynamic loading
 # (LoadLibraryEx + GetProcAddress) instead - see src/InnerLoop/SouffleApi.cpp. That means no
 # Uno import library has to be linked here; we only need the C API header and the default
 # install location baked in as a fallback for the runtime lookup.

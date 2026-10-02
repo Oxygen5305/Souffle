@@ -254,7 +254,7 @@ Souffle\
 ### 6.4 打包
 
 ```powershell
-powershell -File Souffle_Cheese\package\package_unomtg.ps1 -Force
+powershell -File package\package_souffle.ps1 -Force
 ```
 
 脚本流程：可执行文件 → Uno 运行时 → 完整 `Universe` → `HardwareModels` → 算例（路径重定向）

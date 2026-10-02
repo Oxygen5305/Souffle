@@ -17,9 +17,9 @@ SOUFFLE = r"G:\Py\DeepSeekHarness\Souffle"
 WORK_ROOT = r"G:\Py\DeepSeekHarness\Souffle_Cheese\tier2_work"
 
 # --- make the child EMTG process use Souffle + Uno --------------------------------
-os.environ["UNOMTG_NLP_SOLVER"] = "Uno"
-os.environ["UNOMTG_UNO_ROOT"] = os.path.join(SOUFFLE, "Uno")
-os.environ["UNOMTG_UNO_PRESET"] = os.environ.get("UNOMTG_UNO_PRESET", "filtersqp")
+os.environ["SOUFFLE_NLP_SOLVER"] = "Uno"
+os.environ["SOUFFLE_UNO_ROOT"] = os.path.join(SOUFFLE, "Uno")
+os.environ["SOUFFLE_UNO_PRESET"] = os.environ.get("SOUFFLE_UNO_PRESET", "filtersqp")
 os.environ["PATH"] = ";".join([
     os.path.join(SOUFFLE, "bin"),
     os.path.join(SOUFFLE, "Uno", "bin"),
@@ -32,8 +32,8 @@ C.EMTG_BIN = os.path.join(SOUFFLE, "bin", "EMTGv9.exe")
 C.EMTG_WORK_ROOT = WORK_ROOT
 print("[driver] EMTG_BIN  =", C.EMTG_BIN)
 print("[driver] WORK_ROOT =", WORK_ROOT)
-print("[driver] solver    =", os.environ["UNOMTG_NLP_SOLVER"],
-      "preset =", os.environ["UNOMTG_UNO_PRESET"])
+print("[driver] solver    =", os.environ["SOUFFLE_NLP_SOLVER"],
+      "preset =", os.environ["SOUFFLE_UNO_PRESET"])
 
 import emtg_pipeline as P                # noqa: E402
 
