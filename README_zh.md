@@ -9,14 +9,11 @@
 换成开源求解器 **[Uno](https://github.com/cvanaret/Uno)** —— MGALT 转录不变、任务建模不变、
 输出不变，**且不再需要任何商业许可证**。
 
-SOUFFLE 是 *Scalable Optimization Uno-powered Framework For Leveraging EMTG* 的缩写。
-和它同名的甜点一样，这道菜主要是空气：整个求解器接口只是薄薄一层，盖在 EMTG 之上。
-
 > English docs: [README.md](README.md)
 
 | 组成 | 说明 |
 |---|---|
-| **求解器** | Uno ≥ 2.9.0（默认 `filtersqp`，另有 `ipopt`、`funnel`、`Penalty`），运行时动态加载 |
+| **求解器** | Uno ≥ 2.9.0（默认 filtersqp，另有 ipopt、funnel、Penalty），运行时动态加载 |
 | **转录方式** | EMTG MGALT + MBH 全局搜索，与原版完全一致 |
 | **图形界面** | PyEMTG（wxPython），与 SNOPT 版使用的是同一个界面 |
 | **默认构建** | **不需要 SNOPT 安装、不引用 SNOPT 头文件、可执行文件不导入 `snopt7.dll`** |
