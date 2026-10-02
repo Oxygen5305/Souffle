@@ -128,7 +128,7 @@ C 符号，C ABI 跨编译器稳定。代价是 DLL 必须在运行时定位（`
 
 改这个接口时注意两处映射约定：
 
-- **缩放**：EMTG 使用缩放后的变量。传给 Uno 的是 `lower = 0`、
+- **缩放**：EMTG 使用缩放后的变量。传给 Uno 的是 lower = 0、
   `upper = (X_upper − X_lower) / X_scale`，结果按
   `X_unscaled = X_scaled · X_scale + X_lower` 还原。
 - **刻意不注册终止回调**：注册后每次求解都返回 `opt_status=5`（`UNO_USER_TERMINATION`）
