@@ -15,8 +15,10 @@
 #include <vector>
 
 #ifndef SOUFFLE_UNO_ROOT_DEFAULT
-//Fallback used when the SOUFFLE_UNO_ROOT environment variable is not set. Supplied by CMake.
-#define SOUFFLE_UNO_ROOT_DEFAULT "G:\\Py\\DeepSeekHarness\\Uno"
+//Fallback when the SOUFFLE_UNO_ROOT environment variable is not set. CMake supplies the
+//value that was configured; a build configured without one leaves this empty, and startup
+//then fails with an explicit message.
+#define SOUFFLE_UNO_ROOT_DEFAULT ""
 #endif
 
 namespace

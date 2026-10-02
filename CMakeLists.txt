@@ -78,12 +78,15 @@ option(BUILD_PYHARDWARE "Build PyHardware" OFF)
 # Uno import library has to be linked here; we only need the C API header and the default
 # install location baked in as a fallback for the runtime lookup.
 option(SOUFFLE_WITH_UNO "Compile the Uno solver interface" ON)
-set(SOUFFLE_UNO_ROOT "G:/Py/DeepSeekHarness/Uno" CACHE PATH "Uno installation directory (containing bin/, deps/, include/uno/)")
+set(SOUFFLE_UNO_ROOT "" CACHE PATH "Uno installation directory (containing bin/, deps/, include/uno/)")
 # Which NLP solver a freshly built binary uses when SOUFFLE_NLP_SOLVER is not set.
 set(SOUFFLE_DEFAULT_SOLVER "Uno" CACHE STRING "Default NLP solver: Uno or SNOPT")
 set_property(CACHE SOUFFLE_DEFAULT_SOLVER PROPERTY STRINGS Uno SNOPT)
 
 if (SOUFFLE_WITH_UNO)
+	if (SOUFFLE_UNO_ROOT STREQUAL "")
+		message(FATAL_ERROR "SOUFFLE_UNO_ROOT is not set. Point it at your Uno installation, e.g. -DSOUFFLE_UNO_ROOT=C:/path/to/Uno, or configure with -DSOUFFLE_WITH_UNO=OFF to build without a solver.")
+	endif()
 	if (NOT IS_DIRECTORY "${SOUFFLE_UNO_ROOT}/include/uno")
 		message(FATAL_ERROR "Uno headers not found at ${SOUFFLE_UNO_ROOT}/include/uno (set SOUFFLE_UNO_ROOT, or configure with -DSOUFFLE_WITH_UNO=OFF)")
 	endif()

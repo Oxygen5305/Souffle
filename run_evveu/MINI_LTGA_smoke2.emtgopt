@@ -133,7 +133,7 @@ SPICE_leap_seconds_kernel naif0012.tls
 #SPICE_reference_frame_kernel
 SPICE_reference_frame_kernel pck00010.tpc
 #Universe folder
-universe_folder G:/Py/DeepSeekHarness/Souffle_Cheese/Universe_EVVEU
+universe_folder ../Universe_EVVEU
 #0: static, 1: SPICE (default to static if no SPICE file supplied for a body), 2: SplineEphem
 ephemeris_source 1
 #How many sample points should SplineEphem use per orbital period of each body?
@@ -288,7 +288,7 @@ chemical_propellant_margin 0.0
 #2: Assemble from missionoptions object
 SpacecraftModelInput 2
 #HardwarePath
-HardwarePath G:/Py/DeepSeekHarness/Souffle_Cheese/HardwareModels/
+HardwarePath ../HardwareModels/
 #ThrottleTableFile
 ThrottleTableFile empty.ThrottleTable
 #LaunchVehicleLibraryFile
@@ -354,7 +354,7 @@ post_mission_wait_time 0.0
 #Override the working directory?
 override_working_directory 1
 #User-defined working directory
-forced_working_directory G:/Py/DeepSeekHarness/Souffle_Cheese/run_evveu/results
+forced_working_directory ../results
 #Create a mission subfolder?
 override_mission_subfolder 0
 #Mission subfolder
@@ -392,7 +392,7 @@ spice_utilities_path C:/utilities/cspice/exe
 #Spice utility extension
 spice_utility_extension .exe
 #PyEMTG path
-pyemtg_path G:/Py/DeepSeekHarness/Souffle_Cheese/PyEMTG/
+pyemtg_path ../PyEMTG/
 #SPICE ID of spacecraft
 spacecraft_SPICE_ID -52284
 #Close program after completion?

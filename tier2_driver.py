@@ -9,12 +9,27 @@
 import os
 import sys
 
-ESFO = r"G:\Py\DeepSeekHarness\ESFO_Uranus"
+ESFO = os.environ.get("ESFO_URANUS", "")
+if not ESFO:
+    raise SystemExit(
+        "ESFO_URANUS is not set.\n"
+        "Point it at an ESFO_Uranus checkout, e.g.:\n"
+        "    set ESFO_URANUS=C:\\path\\to\\ESFO_Uranus"
+    )
 CODE = os.path.join(ESFO, "code")
 sys.path.insert(0, CODE)
 
-SOUFFLE = r"G:\Py\DeepSeekHarness\Souffle"
-WORK_ROOT = r"G:\Py\DeepSeekHarness\Souffle_Cheese\tier2_work"
+# Paths come from the environment so this script is not tied to one machine.
+#   SOUFFLE_ROOT  - an unpacked SOUFFLE release (needs bin/EMTGv9.exe and Uno/)
+#   TIER2_WORK    - where run directories are created (default: ./tier2_work)
+SOUFFLE = os.environ.get("SOUFFLE_ROOT", "")
+WORK_ROOT = os.environ.get("TIER2_WORK", os.path.join(os.getcwd(), "tier2_work"))
+if not SOUFFLE:
+    raise SystemExit(
+        "SOUFFLE_ROOT is not set.\n"
+        "Point it at an unpacked SOUFFLE release, e.g.:\n"
+        "    set SOUFFLE_ROOT=C:\\path\\to\\Souffle"
+    )
 
 # --- make the child EMTG process use Souffle + Uno --------------------------------
 os.environ["SOUFFLE_NLP_SOLVER"] = "Uno"

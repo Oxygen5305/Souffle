@@ -1,6 +1,6 @@
 # SOUFFLE packaging script: assembles a self-contained, one-click "Uno + SOUFFLE" folder.
 #
-# Layout produced (default target G:\Py\DeepSeekHarness\Souffle):
+# Layout produced (default target: a sibling folder named 'Souffle'):
 #   bin\                 EMTGv9.exe (+ any non-SNOPT DLLs it needs) + Uno runtime DLLs
 #   Uno\bin, Uno\deps\   Uno shared library and its dependencies
 #   Universe_EVVEU\      ephemeris / universe definitions for the EVVEU mission
@@ -11,7 +11,16 @@
 #   powershell -File package_souffle.ps1 [-Target <dir>] [-SkipDocs]
 
 param(
-    [string]$Target = 'G:\Py\DeepSeekHarness\Souffle',
+    # Where to build the package. Defaults to a 'Souffle' folder next to the source tree.
+    [string]$Target = '',
+    # Uno installation (must contain include/uno, bin, deps).
+    [string]$UnoRoot = $env:SOUFFLE_UNO_ROOT,
+    # Python interpreter used for the bundled GUI (needs wxPython, numpy, scipy,
+    # matplotlib, astropy, spiceypy). Omit it and the GUI is skipped.
+    [string]$PythonEnv = $env:SOUFFLE_PYTHON_ENV,
+    # A read-only EMTG checkout to copy Universe/ and PyEMTG/ from. Optional: without it
+    # the script uses the copies already in this repository.
+    [string]$EmtgSource = $env:SOUFFLE_EMTG_DIR,
     [switch]$SkipDocs,
     [switch]$SkipGUI,
     [switch]$Force
@@ -19,10 +28,14 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$root    = 'G:\Py\DeepSeekHarness\Souffle_Cheese'
-$uno     = 'G:\Py\DeepSeekHarness\Uno'
-$pyEnv   = 'G:\Py\DeepSeekHarness\PyEmtgEnv'   # interpreter that already has wxPython etc.
-$emtgDir = 'G:\Py\DeepSeekHarness\EMTG'        # READ-ONLY source of Universe/ and PyEMTG/
+# The source tree is this script's grandparent directory (package/ lives inside it).
+$root = Split-Path -Parent $PSScriptRoot
+if ([string]::IsNullOrWhiteSpace($Target)) {
+    $Target = Join-Path (Split-Path -Parent $root) 'Souffle'
+}
+$uno     = $UnoRoot
+$pyEnv   = $PythonEnv
+$emtgDir = $EmtgSource
 $exeDirs = @("$root\build\src\Executable", "$root\build", "$root\bin")
 
 function Copy-Tree($from, $to, $excludeDirs = @()) {
@@ -150,7 +163,7 @@ if (Test-Path $caseSrc) {
     # Fail loudly if anything machine-specific survived. spice_utilities_path keeps its
     # upstream default (C:/utilities/cspice/exe); it is only used by the optional SPICE
     # utility executables, not during a normal run.
-    $stale = Select-String -Path "$Target\bin\default.emtgopt" -Pattern 'G:/|G:\\|Souffle_Cheese/|DeepSeekHarness/EMTG/' -ErrorAction SilentlyContinue
+    $stale = Select-String -Path "$Target\bin\default.emtgopt" -Pattern '[A-Za-z]:[\\/]' -ErrorAction SilentlyContinue
     if ($stale) {
         Write-Warning "packaged .emtgopt still contains machine-specific paths:"
         $stale | ForEach-Object { Write-Warning ("   " + $_.Line) }
@@ -175,7 +188,11 @@ Copy-Tree "$uno\share\licenses" "$Target\licenses\Uno_third_party"
 if (-not $SkipGUI) {
     Write-Host "=== bundling the PyEMTG GUI (EMTG Python Interface) ===" -ForegroundColor Cyan
 
-    if (-not (Test-Path "$pyEnv\Scripts\python.exe")) {
+    if ([string]::IsNullOrWhiteSpace($pyEnv)) {
+        Write-Warning "no Python environment given (pass -PythonEnv or set SOUFFLE_PYTHON_ENV);"
+        Write-Warning "skipping the GUI - the package will support direct-run mode only."
+    }
+    elseif (-not (Test-Path "$pyEnv\Scripts\python.exe")) {
         Write-Warning "no Python found at $pyEnv\Scripts\python.exe - skipping the GUI;"
         Write-Warning "the package will support direct-run mode only."
     } else {

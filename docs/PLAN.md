@@ -112,26 +112,26 @@ baseline = 36,775 文件
 
 | 项 | 值 |
 |---|---|
-| 编译器 | `D:\Visual_Studio\VC\Tools\MSVC\14.40.33807\bin\Hostx64\x64\cl.exe` |
-| CMake | `D:\Visual_Studio\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe` |
+| 编译器 | Visual Studio 2022 的 MSVC v143（`cl.exe`），由 Developer Command Prompt 提供 |
+| CMake | 任意 ≥ 3.20；VS 自带的那个即可 |
 | 生成器 | `NMake Makefiles` |
-| Windows SDK | `G:\Py\DeepSeekHarness\winsdk`（`10.0.28000.0`） |
-| Boost | `Souffle_Cheese\depend\boost`（`stage\lib`） |
+| Windows SDK | 10.0.19041 或更高 |
+| Boost | ≥ 1.60，MSVC ABI；用 `-DBOOST_ROOT` 指定 |
 | SNOPT | `SNOPTDIR_OVRD` 指定（仅编译期需要） |
-| Uno | `G:\Py\DeepSeekHarness\Uno`（`include\uno`、`bin`、`deps`） |
-| 图形界面依赖环境 | `G:\Py\DeepSeekHarness\PyEmtgEnv`（wxPython 4.3.1 等） |
+| Uno | ≥ 2.9.0 Windows 发行包（含 `include\uno`、`bin`、`deps`）；用 `-DSOUFFLE_UNO_ROOT` 指定 |
+| 图形界面依赖 | 一个装了 wxPython、numpy、scipy、matplotlib、astropy、spiceypy 的 Python |
 | ESFO_Uranus 用 Python | `G:\miniforge3\envs\pykep-env\python.exe` |
 
 **配置命令**
 
 ```powershell
-cmake -S Souffle_Cheese -B Souffle_Cheese\build -G 'NMake Makefiles' `
+cmake -S . -B build -G 'NMake Makefiles' `
   -DCMAKE_BUILD_TYPE=Release `
   -DSNOPTDIR_OVRD=<snopt dir> `
   -DSOUFFLE_WITH_UNO=ON `
-  -DSOUFFLE_UNO_ROOT=G:\Py\DeepSeekHarness\Uno `
+  -DSOUFFLE_UNO_ROOT=<Uno 路径> `
   -DSOUFFLE_DEFAULT_SOLVER=Uno `
-  -DBOOST_ROOT=<boost> -DBoost_INCLUDE_DIR=<boost> `
+  -DBOOST_ROOT=<Boost 路径> -DBoost_INCLUDE_DIR=<boost> `
   -DBoost_LIBRARY_DIR_RELEASE=<boost>\stage\lib -DBoost_LIBRARY_DIR_DEBUG=<boost>\stage\lib
 ```
 
