@@ -9,7 +9,7 @@
 | 编号 | 约束 | 校验方式 |
 |---|---|---|
 | H1 | **原版 `EMTG\` 目录零改动**，一个字节都不能动 | 36,775 文件基线清单 + 逐文件 SHA 比对；见 §4 |
-| H2 | 所有改动只落在本仓库 | 构建命令 `-S . -B build`（禁止 in-source 构建污染源码树） |
+| H2 | 所有改动只落在 `Souffle_Cheese\` | 构建命令 `-S Souffle_Cheese -B Souffle_Cheese/build` |
 | H3 | 复用原 EMTG 资源一律**复制**，不就地修改 | 代码审查 |
 | H4 | 发行包在新机器上**双击即用**：不装编译器/Python、不设环境变量 | 干净环境实测（仅系统 `PATH`） |
 | H5 | `SOUFFLE_NLP_SOLVER=SNOPT` 时行为与原版一致 | 同二进制内保留 SNOPT 路径 |
@@ -58,7 +58,7 @@
 
 ```
 baseline = 36,775 文件
-唯一差异 = EMTG\HardwareModels\empty.ThrottleTableOUTPUT
+唯一差异 = \empty.ThrottleTableOUTPUT
           内容 SHA 与基线完全相同（57564E13C9D3A80B）
           时间戳停在 2026-10-01T14:20:32Z（修复 HardwarePath 之前）
 结论     = 原版 EMTG 未被实质性修改
@@ -112,26 +112,26 @@ baseline = 36,775 文件
 
 | 项 | 值 |
 |---|---|
-| 编译器 | Visual Studio 2022 的 MSVC v143（`cl.exe`），由 Developer Command Prompt 提供 |
-| CMake | 任意 ≥ 3.20；VS 自带的那个即可 |
+| 编译器 | `\Visual_Studio\VC\Tools\MSVC\14.40.33807\bin\Hostx64\x64\cl.exe` |
+| CMake | `\Visual_Studio\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe` |
 | 生成器 | `NMake Makefiles` |
-| Windows SDK | 10.0.19041 或更高 |
-| Boost | ≥ 1.60，MSVC ABI；用 `-DBOOST_ROOT` 指定 |
+| Windows SDK | `\winsdk`（`10.0.28000.0`） |
+| Boost | `Souffle_Cheese\depend\boost`（`stage\lib`） |
 | SNOPT | `SNOPTDIR_OVRD` 指定（仅编译期需要） |
-| Uno | ≥ 2.9.0 Windows 发行包（含 `include\uno`、`bin`、`deps`）；用 `-DSOUFFLE_UNO_ROOT` 指定 |
-| 图形界面依赖 | 一个装了 wxPython、numpy、scipy、matplotlib、astropy、spiceypy 的 Python |
-| ESFO_Uranus 用 Python | `G:\miniforge3\envs\pykep-env\python.exe` |
+| Uno | `\Uno`（`include\uno`、`bin`、`deps`） |
+| 图形界面依赖环境 | `\PyEmtgEnv`（wxPython 4.3.1 等） |
+| ESFO_Uranus 用 Python | `\miniforge3\envs\pykep-env\python.exe` |
 
 **配置命令**
 
 ```powershell
-cmake -S . -B build -G 'NMake Makefiles' `
+cmake -S Souffle_Cheese -B Souffle_Cheese\build -G 'NMake Makefiles' `
   -DCMAKE_BUILD_TYPE=Release `
   -DSNOPTDIR_OVRD=<snopt dir> `
   -DSOUFFLE_WITH_UNO=ON `
-  -DSOUFFLE_UNO_ROOT=<Uno 路径> `
+  -DSOUFFLE_UNO_ROOT=G:\Py\DeepSeekHarness\Uno `
   -DSOUFFLE_DEFAULT_SOLVER=Uno `
-  -DBOOST_ROOT=<Boost 路径> -DBoost_INCLUDE_DIR=<boost> `
+  -DBOOST_ROOT=<boost> -DBoost_INCLUDE_DIR=<boost> `
   -DBoost_LIBRARY_DIR_RELEASE=<boost>\stage\lib -DBoost_LIBRARY_DIR_DEBUG=<boost>\stage\lib
 ```
 
@@ -147,4 +147,4 @@ cmake -S . -B build -G 'NMake Makefiles' `
 | 成员名 `mySNOPT` → `mySolver` | 纯命名清理，涉及 5 个文件 |
 | 同口径消除发射日差异 | 把发射历元钉死到基准的 2044-03-14 再各跑一次 |
 | 批量运行二级流水线 | 驱动脚本已可用（`tier2_driver.py`），可扩展到多 case |
-| 为仓库启用分支保护与备份 | 避免再次出现不可回滚的损坏 |
+| 为 `Souffle_Cheese` 建 Git 仓库 | 避免再次出现不可回滚的损坏 |
