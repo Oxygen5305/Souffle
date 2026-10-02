@@ -1,6 +1,6 @@
 # SOUFFLE — Scalable Optimization Uno-powered Framework For Leveraging EMTG
 
-**SOUFFLE** : **S**calable **O**ptimization **U**no-powered **F**ramework **F**or **L**everaging **E**MTG
+**SOUFFLE** = **S**calable **O**ptimization **U**no-powered **F**ramework **F**or **L**everaging **E**MTG
 
 SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Mission Trajectory Generator），
 把内层非线性优化器从 **SNOPT** 换成开源求解器 **[Uno](https://github.com/cvanaret/Uno)**，
@@ -19,10 +19,10 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 
 | 目录 | 状态 | 说明 |
 |---|---|---|
-| `G:\Py\DeepSeekHarness\EMTG\` | 🔒 **只读，零改动** | 原版 SNOPT 版 EMTG。**不得修改其中任何一个字节。** 它是始终可用的回退与对照基准。 |
-| `G:\Py\DeepSeekHarness\Souffle_Cheese\` | ✏️ 可写 | 本项目：EMTG 的 fork + Uno 求解器接口层 |
-| `G:\Py\DeepSeekHarness\Souffle\` | ✏️ 可写 | 发行包（由 `Souffle_Cheese\package\` 打包产出） |
-| `G:\Py\DeepSeekHarness\Uno\` | ✏️ 可写 | Uno v2.9.0 Windows (MinGW) 预编译发行包 |
+| 上游 `EMTG\` | 🔒 **只读，零改动** | 原版 SNOPT 版 EMTG，始终可用的回退与对照基准。**不得修改其中任何一个字节。** |
+| 本仓库 `Souffle_Cheese\` | ✏️ 可写 | 本项目：EMTG 的 fork + Uno 求解器接口层 |
+| 发行包 `Souffle\` | ✏️ 可写 | 由 `package\package_souffle.ps1` 打包产出 |
+| 依赖 `Uno\` | ✏️ 可写 | Uno ≥ 2.9.0 Windows (MinGW) 预编译发行包，需自行获取 |
 
 **开发纪律**
 
@@ -66,7 +66,7 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 - `CMAKE_GENERATOR = NMake Makefiles`
 - Boost 用 `libboost_filesystem-vc143-*`（MSVC ABI）
 - cmake 用 VS 自带：`D:\Visual_Studio\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe`
-- Windows SDK：便携版 `G:\Py\DeepSeekHarness\winsdk`（`10.0.28000.0`）
+- Windows SDK（参考构建使用 `10.0.28000.0`，亦可用便携版）
 
 而 **Uno 的 Windows 预编译包是 MinGW 格式**（`libuno.dll.a`），MSVC 链接器无法直接链接。
 
