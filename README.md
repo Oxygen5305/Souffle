@@ -100,7 +100,7 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 
 | 变量 | 默认 | 说明 |
 |---|---|---|
-| `SOUFFLE_NLP_SOLVER` | `Uno` | 选 `Uno` 或 `SNOPT`（后者需许可证） |
+| `SOUFFLE_NLP_SOLVER` | `Uno` | 选 `Uno` 或 `SNOPT`。**SNOPT 仅在编译时开启 `SOUFFLE_WITH_SNOPT=ON` 才可用**；默认构建只含 Uno |
 | `SOUFFLE_UNO_ROOT` | 编译期内置 | Uno 安装目录（含 `bin\`、`deps\`） |
 | `SOUFFLE_UNO_PRESET` | `filtersqp` | 也可设 `ipopt` / `funnel` / `Penalty` |
 
@@ -248,8 +248,12 @@ Souffle\
 └── licenses\                   EMTG(NOSA 1.3) / Uno(MIT) / 第三方
 ```
 
-**不需要 SNOPT 许可证**：`bin\snopt7.dll` 存在只是因为 `EMTGv9.exe` 硬导入它；
-求解器为 Uno 时从不进入 SNOPT 代码路径（已实测：不设 `SNOPT_LICENSE` 仍完整跑完）。
+**默认构建完全不需要 SNOPT**：`SOUFFLE_WITH_SNOPT` 默认为 `OFF`，此时
+`SNOPT_interface.cpp` 不参与编译、不引用任何 SNOPT 头文件、
+**可执行文件也不导入 `snopt7.dll`**（已用 `dumpbin /imports` 与
+"目录内无任何 snopt 文件仍能跑完" 双重验证）。
+因此既不需要 SNOPT 安装，也不需要许可证。
+开启 `SOUFFLE_WITH_SNOPT=ON` 才会恢复 SNOPT 对照路径，那时才需要自备 SNOPT 与许可证。
 
 ### 6.4 打包
 

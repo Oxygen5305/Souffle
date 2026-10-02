@@ -1,0 +1,30 @@
+# Normalise line endings so the repository stays consistent across platforms.
+* text=auto
+
+# Source and text files: check out with the platform default.
+*.c      text
+*.cc     text
+*.cpp    text
+*.h      text
+*.hpp    text
+*.py     text
+*.md     text
+*.txt    text
+*.cmake  text
+*.options text
+CMakeLists.txt text
+*.bat    text eol=crlf
+*.ps1    text eol=crlf
+
+# Binary assets: never touch.
+*.pdf    binary
+*.png    binary
+*.jpg    binary
+*.xlsx   binary
+*.ico    binary
+*.bsp    binary
+*.tls    binary
+*.tpc    binary
+*.dll    binary
+*.exe    binary
+*.lib    binary
