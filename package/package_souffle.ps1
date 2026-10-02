@@ -80,36 +80,13 @@ foreach ($dll in Get-ChildItem "$uno\bin\*.dll" -ErrorAction SilentlyContinue) {
     Write-Host "  bin\$($dll.Name)"
 }
 
-# ---- 2b. minimal SNOPT runtime ----------------------------------------------------
-# EMTGv9.exe hard-imports snopt7.dll, so it must be present or the process dies at load
-# time with STATUS_DLL_NOT_FOUND (0xC0000135) before any solver is chosen. snopt7.dll in
-# turn imports the Intel Fortran runtime, so those must come along too. With
-# SOUFFLE_NLP_SOLVER=Uno the SNOPT solver is never entered and no license is needed.
-#
-# The Intel entries below were obtained with `objdump -p snopt7.dll | findstr "DLL Name"`.
-# MSVCP140 / VCRUNTIME140 come from the VC++ redistributable; they are copied when present
-# in the build tree, otherwise the target machine needs the VC++ 2015-2022 redistributable.
-$snoptRuntime = @(
-    'snopt7.dll',
-    'libsnopt.dll',
-    'libifcoremd.dll',
-    'libmmd.dll',
-    'svml_dispmd.dll',
-    'libiomp5md.dll'
-)
-$vcRuntime = @('MSVCP140.dll', 'VCRUNTIME140.dll', 'VCRUNTIME140_1.dll')
-
-foreach ($name in ($snoptRuntime + $vcRuntime)) {
-    $candidate = Join-Path "$root\bin" $name
-    if (Test-Path $candidate) {
-        Copy-Item $candidate "$Target\bin\" -Force
-        Write-Host "  bin\$name"
-    } elseif ($name -eq 'snopt7.dll') {
-        Write-Warning "snopt7.dll not found in $root\bin - the packaged exe will fail to start!"
-    } else {
-        Write-Host "  bin\$name  (absent in build tree; relying on system/redistributable)" -ForegroundColor DarkYellow
-    }
-}
+# ---- 2b. no SNOPT runtime ---------------------------------------------------------
+# An earlier version copied snopt7.dll and the Intel Fortran runtime here, because a
+# SOUFFLE_WITH_SNOPT=ON build imports snopt7.dll at load time. The default build
+# (SOUFFLE_WITH_SNOPT=OFF) does not import it: `dumpbin /imports` on the shipped exe lists
+# only KERNEL32, MSVCP140, VCRUNTIME140* and the api-ms-win-crt-* set, and the release runs
+# to completion with every SNOPT-related DLL removed from bin/. Nothing is copied, which
+# also keeps the commercial solver out of the distribution entirely.
 
 # ---- 3. mission data (ephemeris / universe) --------------------------------------
 Copy-Tree "$root\Universe_EVVEU" "$Target\Universe_EVVEU"
