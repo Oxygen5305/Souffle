@@ -47,7 +47,7 @@ forced_working_directory ../results
 |---|---|
 | `bin\EMTGv9.exe` | SOUFFLE 可执行文件（用 Uno 作内层 NLP 求解器的 EMTG） |
 | `bin\default.emtgopt` | 不带参数启动时 EMTG 读取的算例 |
-| `bin\*.dll` | Uno 共享库，以及 EMTG 硬导入的运行时 DLL |
+| `bin\*.dll` | `libuno.dll`（Uno 运行时） |
 | `Uno\bin`、`Uno\deps` | Uno 运行时；环境变量 `SOUFFLE_UNO_ROOT` 指向此处 |
 | `HardwareModels\` | 推力器 / 电源 / 推进系统库（启动时读取） |
 | `Universe\` | 完整星历与宇宙模型集（可在界面中新建任务） |
