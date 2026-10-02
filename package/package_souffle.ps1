@@ -154,6 +154,9 @@ if (Test-Path $caseSrc) {
     $case = $case -replace '(?m)^snopt_max_run_time[ \t]+\S+', 'snopt_max_run_time 60'
     $case = $case -replace '(?m)^num_timesteps[ \t]+\S+',     'num_timesteps 10'
     $case = $case -replace '(?m)^number_of_steps[ \t]+\S+',   'number_of_steps 10'
+    # spice_utilities_path defaults to C:/utilities/cspice/exe inside EMTG and is only read
+    # when the line is present, so removing it keeps the case free of absolute paths.
+    $case = $case -replace '(?m)^spice_utilities_path[ \t]+\S+\r?\n', ''
     $case = $case -replace "`r`n", "`n"
 
     [System.IO.File]::WriteAllText("$Target\bin\default.emtgopt", $case)
@@ -176,6 +179,12 @@ if (Test-Path $caseSrc) {
 
 # ---- 4. launcher -----------------------------------------------------------------
 Copy-Item "$root\package\run_souffle.bat" "$Target\run_souffle.bat" -Force
+
+# results/ must ship empty: earlier runs leave dated subdirectories behind, and those are
+# neither part of the release nor useful to anyone downloading it.
+New-Item -ItemType Directory -Force -Path "$Target\results" | Out-Null
+Get-ChildItem "$Target\results" -Force -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+Write-Host "  results\ (emptied)"
 Write-Host "  run_souffle.bat"
 
 # ---- 5. licenses (required when redistributing) ----------------------------------
