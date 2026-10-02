@@ -1,0 +1,128 @@
+  _____ __  __ _____ ____ 
+ | ____|  \/  |_   _/ ___|
+ |  _| | |\/| | | || |  _ 
+ | |___| |  | | | || |_| |
+ |_____|_|  |_| |_| \____|                        
+=============================================================================================================================
+Evolutionary Mission Trajectory Generator (EMTG) Open Source Release
+Originating author: Jacob Englander
+Mainainer: NASA Goddard Spaceflight Center (GSFC) Code 595 EMTG team (GSFC-DL-TrajOpt-Support@mail.nasa.gov)
+Version: 9.02
+License: NASA Open Source Agreement (https://www.nasa.gov/open/open-source-development.html)
+Notices and Disclaimers: See the bottom of the README
+=============================================================================================================================
+~~~~~~~~
+Purpose:
+~~~~~~~~
+The contents of this NASA GSFC public software release distribution contains all of the source code and documentation for the 
+Evolutionary Mission Trajectory Generator (EMTG). Select third-party code is included in this release as indicated in the 
+subsequent 'Dependencies section'. Users will need to download and install all other third-party dependencies mentioned in 
+the build guide. 
+
+~~~~~~~~~~~~~
+Dependencies:
+~~~~~~~~~~~~~
+EMTG has several software dependencies but all, except the Sparse Nonlinear OPTimizer (SNOPT), are free software. 
+The current EMTG software is configured to work best with SNOPT 7.6. To acquire SNOPT visit their product page 
+(http://sbsi-sol-optimize.com/asp/sol_product_snopt.htm). 
+
+The following dependencies have been bundled with this release and files associated with them can be found in /depend/:
+-– Boost 1.79.0
+-– CSPICE 64bit
+-– GSL 2.4.0
+-- MinGW 7.2.0 [Windows only](variant: 64-bit, posix (threading), and seh (exception handler))
+-– randutils rev 2
+
+~~~~~~~~~~~~~
+Installation:
+~~~~~~~~~~~~~
+The GSFC EMTG team is primarily using Windows and Linux. Both Windows and Linux build guides are included.
+
+Navigate to the /docs/build_system/ directory for EMTG_*_build_system*.pdf documents detailing step-by-step instructions on 
+how to install the software dependencies and build EMTG. These documents are catered to specific software dependency 
+versions. Alternative versions may work but proceed at your own risk when deviating from the provided install guidance.
+
+=============================================================================================================================
+*****************************************************************************************************************************
+The EMTG development team is pleased to share the fruits of our labors with you. We ask, but do not require, that if you do 
+something really awesome with it please publish your awesome accomplishments and cite us.
+*****************************************************************************************************************************
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Frequently Asked Questions (FAQ)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Q: Is there a user guide?
+A: Yes. There are a couple of User Guides is in the /docs/0_Users/ directory. 
+
+Q: Is there a reason the GUI is limited in functionality?
+A: Due to limited staffing, core functionality was prioritized. This is an excellent opportunity for contribution from the 
+open source community.
+
+Q: Can you give me technical support for installing and operating EMTG?
+A: Feel free to reach out to the team contact information provided at the header of this file but be aware that the 
+development team has limited availability to respond to all inquiries. There is also a discussion functionality on the 
+EMTG GitHub page where you can post and engage with the community for support.
+
+Q: Will EMTG work on Linux?
+A: Yes, it will. Linux build instructions are provided with this release.
+
+Q: Will EMTG work on a Mac? If so, why is there not a Mac build document?
+A: Yes EMTG should work on a Mac. The development team did not have access to a Mac to be able to do development/testing 
+so additional steps would be needed to get EMTG functional on a Mac.
+
+Q: Will EMTG work on my smart phone?
+A: We are not pursuing getting EMTG to run on a smart phone, but if you try it and it works, we'd love to hear about it!
+
+Q: How frequently will you update EMTG?
+A: Resources are limited for the development team so open source releases will occure infrequently.
+
+Q: Can you make me an executable?
+A: No. EMTG depends on a number of third-party packages and NASA does not have the rights to distribute all of them.
+
+Q: Why doesn't my PyEMTG work?
+A: The various Python packages and libraries change fast and the development team has limited resources. The build system 
+instructions are focused on specific Python package versions but may also work with other versions. Please make 
+adjustments to PyEMTG as-needed to make it work on your system.
+
+Q: I have a different SNOPT version than what is listed in the build system instructions. Will it work with EMTG?
+A: It is possible other versions will work. Feel free to try it and if you succeed consider providing us with updates we 
+can incorporate in future releases. You can make changes to /src/InnerLoop/snoptProblemExtension.h to get it to talk to 
+your SNOPT.
+
+Q: Can I use this commercially?
+A: Yes.
+
+Q: Can I teach a class with this?
+A: Absolutely!
+
+Q: I found a bug! How can I submit the bug so it can potentially be fixed in a future version?
+A: Thank you for finding the bug and wanting to improve future versions. Please either email us about the bug or post to 
+the Issues section of GitHub so that we can fix it for future versions!
+
+
+=============================================================================================================================
+Notices:
+“Copyright © 2024 United States Government as represented by the Administrator of the National Aeronautics and Space 
+Administration.  All Rights Reserved.”
+
+=============================================================================================================================
+Disclaimer:
+No Warranty: THE SUBJECT SOFTWARE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY OF ANY KIND, EITHER EXPRESSED, IMPLIED, OR 
+STATUTORY, INCLUDING, BUT NOT LIMITED TO, ANY WARRANTY THAT THE SUBJECT SOFTWARE WILL CONFORM TO SPECIFICATIONS, ANY IMPLIED 
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR FREEDOM FROM INFRINGEMENT, ANY WARRANTY THAT THE SUBJECT 
+SOFTWARE WILL BE ERROR FREE, OR ANY WARRANTY THAT DOCUMENTATION, IF PROVIDED, WILL CONFORM TO THE SUBJECT SOFTWARE. THIS 
+AGREEMENT DOES NOT, IN ANY MANNER, CONSTITUTE AN ENDORSEMENT BY GOVERNMENT AGENCY OR ANY PRIOR RECIPIENT OF ANY RESULTS, 
+RESULTING DESIGNS, HARDWARE, SOFTWARE PRODUCTS OR ANY OTHER APPLICATIONS RESULTING FROM USE OF THE SUBJECT SOFTWARE.  
+FURTHER, GOVERNMENT AGENCY DISCLAIMS ALL WARRANTIES AND LIABILITIES REGARDING THIRD-PARTY SOFTWARE, IF PRESENT IN THE 
+ORIGINAL SOFTWARE, AND DISTRIBUTES IT "AS IS."
+
+=============================================================================================================================
+Waiver and Indemnity:  RECIPIENT AGREES TO WAIVE ANY AND ALL CLAIMS AGAINST THE UNITED STATES GOVERNMENT, ITS CONTRACTORS AND
+SUBCONTRACTORS, AS WELL AS ANY PRIOR RECIPIENT.  IF RECIPIENT'S USE OF THE SUBJECT SOFTWARE RESULTS IN ANY LIABILITIES, 
+DEMANDS, DAMAGES, EXPENSES OR LOSSES ARISING FROM SUCH USE, INCLUDING ANY DAMAGES FROM PRODUCTS BASED ON, OR RESULTING FROM, 
+RECIPIENT'S USE OF THE SUBJECT SOFTWARE, RECIPIENT SHALL INDEMNIFY AND HOLD HARMLESS THE UNITED STATES GOVERNMENT, ITS 
+CONTRACTORS AND SUBCONTRACTORS, AS WELL AS ANY PRIOR RECIPIENT, TO THE EXTENT PERMITTED BY LAW.  RECIPIENT'S SOLE REMEDY FOR 
+ANY SUCH MATTER SHALL BE THE IMMEDIATE, UNILATERAL TERMINATION OF THIS AGREEMENT.
+
+

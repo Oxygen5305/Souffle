@@ -1,0 +1,33 @@
+#universe file
+#Uranus-centered universe for the low-thrust Uranus Orbit Insertion (UOI) journey
+
+#Central body name
+central_body_name Uranus
+#Central body SPICE ID
+central_body_SPICE_ID 7
+#central body radius
+central_body_radius 25559.0
+#central body J2
+central_body_J2 0.0035199
+#central body J2 reference_radius
+central_body_J2_reference_radius 25559.0
+#central body flattening
+central_body_flattening_coefficient 0.022930
+#gravitational constant of central body, in km^3/s^2
+mu 5.793951322279009e6
+#characteristic length unit, in km
+LU 82700.0
+#angles defining the local reference frame relative to ICRF, given in degrees
+#alpha0, alphadot, delta0, deltadot, W, Wdot
+reference_angles 257.311 0.0 -15.175 0.0 203.81 -501.1600928
+#radius of the central body's sphere of influence
+r_SOI 4.91e7
+#minimum safe distance from the central body
+minimum_safe_distance 26836.95
+
+#menu of bodies
+#name shortname number SPICE_ID minimum_flyby_altitude GM radius central_body_flattening_coefficient ephemeris_epoch alpha0 alphadot delta0 deltadot W Wdot SMA ECC INC RAAN AOP MA
+#SMA, radius, and minimum_flyby_altitude in km, angles in degrees, GM in km^3/s^2
+#if minimum_flyby_altitude <= 0, then this object is not placed on the flyby menu
+begin_body_list
+end_body_list

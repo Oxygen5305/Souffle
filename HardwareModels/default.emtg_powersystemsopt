@@ -1,0 +1,11 @@
+#EMTG power system specification (space or comma delimited)" << std::endl;
+#Spacecraft_Power_Supply_Type choices are (0: Constant, 1: Solar)" << std::endl;
+#Spacecraft_Power_Supply_Curve_Type choices are (0: Sauer, 1: Polynomial)" << std::endl;
+#Spacecraft_Bus_Power_Type choices are (0: TypeA_Quadratic, 1: TypeB_Conditional)" << std::endl;
+#name Spacecraft_Power_Supply_Type Spacecraft_Power_Supply_Curve_Type Spacecraft_Bus_Power_Type P0 mass_per_kW(kg) decay_rate gamma[0:6] BusPower[0:2]
+#
+5kW_basic 1 0 0 5.0 0.0 0.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+10kW_basic 1 0 0 10.0 0.0 0.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+15kW_basic 1 0 0 15.0 0.0 0.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+20kW_basic 1 0 0 20.0 0.0 0.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+#EndHardwareBlock
