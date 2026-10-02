@@ -6,11 +6,10 @@
 // Uno Windows binaries are MinGW builds. MSVC cannot link a MinGW import library
 // (libuno.dll.a). However libuno.dll exports the Uno C API with *undecorated C names*
 // (uno_create_model, uno_optimize, ...), and the C ABI is stable across compilers, so
-// LoadLibraryEx + GetProcAddress works from MSVC code. This was verified experimentally
-// before this wrapper was written (see _probe/msvc_probe.c).
+// LoadLibraryEx + GetProcAddress works from MSVC code. See _probe/msvc_probe.c.
 //
-// Using this wrapper keeps SOUFFLE on the original toolchain, so nothing else in the build
-// (Boost, SPICE, SNOPT, Windows SDK) has to change.
+// This keeps the build on the original toolchain: Boost, SPICE, the Windows SDK and the
+// SNOPT path are unchanged.
 //
 // Licensed under the NASA Open Source Agreement 1.3, like the rest of EMTG.
 

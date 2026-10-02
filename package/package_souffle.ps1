@@ -70,9 +70,8 @@ foreach ($dll in Get-ChildItem "$uno\bin\*.dll" -ErrorAction SilentlyContinue) {
 # ---- 2b. minimal SNOPT runtime ----------------------------------------------------
 # EMTGv9.exe hard-imports snopt7.dll, so it must be present or the process dies at load
 # time with STATUS_DLL_NOT_FOUND (0xC0000135) before any solver is chosen. snopt7.dll in
-# turn imports the Intel Fortran runtime, so those must come along too. The SNOPT solver
-# itself is never entered while SOUFFLE_NLP_SOLVER=Uno, and this was verified: the program
-# runs to completion with SNOPT_LICENSE unset.
+# turn imports the Intel Fortran runtime, so those must come along too. With
+# SOUFFLE_NLP_SOLVER=Uno the SNOPT solver is never entered and no license is needed.
 #
 # The Intel entries below were obtained with `objdump -p snopt7.dll | findstr "DLL Name"`.
 # MSVCP140 / VCRUNTIME140 come from the VC++ redistributable; they are copied when present
@@ -149,8 +148,8 @@ if (Test-Path $caseSrc) {
     Write-Host "  bin\default.emtgopt + EVVEU_LTGA.emtgopt (relative paths)"
 
     # Fail loudly if anything machine-specific survived. spice_utilities_path keeps its
-    # upstream default (C:/utilities/cspice/exe); it is only used for optional SPICE
-    # utility executables and never during a normal run, so it is not a defect.
+    # upstream default (C:/utilities/cspice/exe); it is only used by the optional SPICE
+    # utility executables, not during a normal run.
     $stale = Select-String -Path "$Target\bin\default.emtgopt" -Pattern 'G:/|G:\\|Souffle_Cheese/|DeepSeekHarness/EMTG/' -ErrorAction SilentlyContinue
     if ($stale) {
         Write-Warning "packaged .emtgopt still contains machine-specific paths:"
@@ -190,10 +189,8 @@ if (-not $SkipGUI) {
         Copy-Tree "$emtgDir\PyEMTG" "$Target\PyEMTG" @('__pycache__')
         Write-Host "  PyEMTG\"
 
-        # PyEMTG.options is NOT written here on purpose: the launcher regenerates it at
-        # start-up from its own location, which is what makes the folder relocatable.
-        # Provide a correctly-pointed copy anyway, so the GUI also works if someone
-        # double-clicks PyEMTG.pyw directly.
+        # The launcher regenerates PyEMTG.options at start-up from its own location. This
+        # copy is for running PyEMTG.pyw directly, without the launcher.
         $fwd = $Target.Replace('\','/')
         $optLines = @(
             "EMTG_path $fwd/bin/EMTGv9.exe",
@@ -311,7 +308,7 @@ The launcher sets `SOUFFLE_NLP_SOLVER=Uno` and `SOUFFLE_UNO_PRESET=filtersqp`.
 * **Back to SNOPT** - `set SOUFFLE_NLP_SOLVER=SNOPT` selects the SNOPT path still compiled
   into the binary. That needs the SNOPT runtime and a valid license. The bundled
   `snopt7.dll` exists only because the executable hard-imports it; while the solver is set
-  to Uno the SNOPT code is never entered, which is why no license is required.
+  to Uno the SNOPT code is never entered and no license is needed.
 
 ## Verified behaviour
 

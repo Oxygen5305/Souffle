@@ -349,7 +349,8 @@ namespace EMTG
             {
                 //Hard wall-clock limit, matching NLPoptions::max_run_time_seconds.
                 //
-                //NOTE (SOUFFLE): this callback exists but is deliberately NOT registered - see the
+//NOTE (SOUFFLE): implemented for reference; not registered. See where the
+//callbacks are installed for the reason.
                 //comment at the set_solver_callbacks call site. It is kept because the wall-clock
                 //and goal-attainment logic here is the right place for it once the callback
                 //protocol is properly understood.
@@ -581,7 +582,7 @@ namespace EMTG
             //SILENT / DISCRETE / WARNING / INFO / DEBUG / DEBUG2 / DEBUG3.
             api.set_solver_string_option(solver.solver, "logger", "SILENT");
 
-            //NOTE (SOUFFLE): the termination callback is deliberately NOT installed.
+            //NOTE (SOUFFLE): the termination callback is not installed.
             //
             //Originally we registered both callbacks. Diagnosis showed that with it installed,
             //every Uno solve came back as opt_status=5 (UNO_USER_TERMINATION) with iters=1, i.e.
@@ -680,7 +681,7 @@ namespace EMTG
                           << " objective=" << this->F.front() << std::endl;
             }
 
-            //Solver diagnostics, deliberately NOT gated on quiet_NLP. Knowing how many iterations
+            //Solver diagnostics, not gated on quiet_NLP. Knowing how many iterations
             //Uno actually ran and which method it used is the first thing needed when a solve
             //"does nothing", and quiet_NLP=1 would otherwise hide it completely.
             std::cout << "SOUFFLE[solve]: preset=" << uno_preset
