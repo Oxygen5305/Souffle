@@ -206,16 +206,22 @@ if (-not $SkipGUI) {
         Copy-Tree "$emtgDir\PyEMTG" "$Target\PyEMTG" @('__pycache__')
         Write-Host "  PyEMTG\"
 
-        # The launcher regenerates PyEMTG.options at start-up from its own location. This
-        # copy is for running PyEMTG.pyw directly, without the launcher.
-        $fwd = $Target.Replace('\','/')
+        # PyEMTG needs absolute paths, but baking this machine's paths into the release would
+        # make it wrong for everyone else. The launcher regenerates this file at start-up
+        # from its own location, so what ships here is a placeholder template; it is only
+        # read if someone runs PyEMTG.pyw directly.
         $optLines = @(
-            "EMTG_path $fwd/bin/EMTGv9.exe",
-            "default_universe_path $fwd/Universe",
+            "# PyEMTG configuration template.",
+            "# The launcher (run_souffle.bat) regenerates this file at start-up using its own",
+            "# location, so the values below are only used when PyEMTG.pyw is started directly.",
+            "# Replace <SOUFFLE> with the absolute path of this folder.",
+            "",
+            "EMTG_path <SOUFFLE>/bin/EMTGv9.exe",
+            "default_universe_path <SOUFFLE>/Universe",
             "de_file de440s.bsp",
             "leapseconds_file naif0012.tls",
-            "default_small_bodies_file $fwd/Universe/ephemeris_files/AllAsteroids.SmallBody",
-            "default_HardwarePath $fwd/HardwareModels",
+            "default_small_bodies_file <SOUFFLE>/Universe/ephemeris_files/AllAsteroids.SmallBody",
+            "default_HardwarePath <SOUFFLE>/HardwareModels",
             "default_ThrottleTableFile AEPS.ThrottleTable",
             "default_LaunchVehicleLibraryFile default.emtg_launchvehicleopt",
             "default_PowerSystemsLibraryFile default.emtg_powersystemsopt",
@@ -223,7 +229,7 @@ if (-not $SkipGUI) {
             "default_SpacecraftOptionsFile default.emtg_spacecraftopt"
         )
         Set-Content -Path "$Target\PyEMTG\PyEMTG.options" -Value $optLines -Encoding ASCII
-        Write-Host "  PyEMTG\PyEMTG.options"
+        Write-Host "  PyEMTG\PyEMTG.options (placeholder; the launcher rewrites it)"
 
         # Sanity-check the GUI's inputs, so a broken package is caught here rather than at
         # the user's first double-click.
