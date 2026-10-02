@@ -314,10 +314,9 @@ The launcher sets `SOUFFLE_NLP_SOLVER=Uno` and `SOUFFLE_UNO_PRESET=filtersqp`.
 
   Measured on the EVVEU case: `filtersqp` converged in 111/138 solves, `ipopt` in 33/263.
 
-* **Back to SNOPT** - `set SOUFFLE_NLP_SOLVER=SNOPT` selects the SNOPT path still compiled
-  into the binary. That needs the SNOPT runtime and a valid license. The bundled
-  `snopt7.dll` exists only because the executable hard-imports it; while the solver is set
-  to Uno the SNOPT code is never entered and no license is needed.
+* **Back to SNOPT** - only a build made with `SOUFFLE_WITH_SNOPT=ON` contains that path.
+  This release is Uno-only, so `set SOUFFLE_NLP_SOLVER=SNOPT` reports an error rather than
+  switching. No SNOPT binary or license is bundled, and none is needed.
 
 ## Verified behaviour
 

@@ -91,10 +91,9 @@ forced_working_directory ../results
 
   在 EVVEU 算例上的实测：`filtersqp` 收敛 111/138 次，`ipopt` 为 33/263 次。
 
-* **切回 SNOPT** —— `set SOUFFLE_NLP_SOLVER=SNOPT` 会启用仍编译在同一个可执行文件里的
-  SNOPT 路径。那条路需要 SNOPT 运行时和有效许可证。本包中附带的 `snopt7.dll`
-  仅仅是因为可执行文件**硬导入**了它；当求解器设为 Uno 时，SNOPT 代码路径从不进入，
-  这就是不需要许可证的原因。
+* **切回 SNOPT** —— 只有以 `SOUFFLE_WITH_SNOPT=ON` 构建的版本才包含该路径。本发行包
+  是纯 Uno 版，因此 `set SOUFFLE_NLP_SOLVER=SNOPT` 会报错而不是切换。包内不含任何
+  SNOPT 二进制或许可证，也不需要它们。
 
 ---
 
