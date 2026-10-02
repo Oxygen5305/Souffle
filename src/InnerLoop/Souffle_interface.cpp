@@ -1,10 +1,5 @@
-// SOUFFLE: EMTG NLP solver interface backed by the Uno solver (implementation).
-//
-// See Souffle_interface.h for the contract. The structure deliberately mirrors
-// SNOPT_interface.cpp so that the two solvers can be compared on identical problems:
-//   * same scaled-variable convention,
-//   * same EMTG-side feasibility/chaperone logic,
-//   * only the solver call differs.
+// SOUFFLE: NLP solver interface backed by Uno (implementation).
+// See Souffle_interface.h for the contract.
 //
 // Licensed under the NASA Open Source Agreement 1.3, like the rest of EMTG.
 
@@ -116,9 +111,8 @@ namespace EMTG
 
         void Souffle_interface::ensure_evaluated(const double* x_scaled, bool need_gradient)
         {
-            //Uno evaluates objective and constraints/gradient through separate callbacks. EMTG
-            //computes everything in one shot, so cache the result and reuse it whenever the point
-            //has not changed.
+            //Uno calls objective and constraints separately; EMTG computes both at once, so
+            //cache the evaluation until the point changes.
             bool same_point = this->cache_valid;
             if (same_point)
             {
@@ -348,12 +342,7 @@ namespace EMTG
             try
             {
                 //Hard wall-clock limit, matching NLPoptions::max_run_time_seconds.
-                //
-//NOTE (SOUFFLE): implemented for reference; not registered. See where the
-//callbacks are installed for the reason.
-                //comment at the set_solver_callbacks call site. It is kept because the wall-clock
-                //and goal-attainment logic here is the right place for it once the callback
-                //protocol is properly understood.
+                //Not registered; see the set_solver_callbacks call site.
                 const time_t elapsed = time(NULL) - self->NLP_start_time;
                 if (elapsed >= static_cast<time_t>(self->myOptions.get_max_run_time_seconds()))
                 {
@@ -478,9 +467,7 @@ namespace EMTG
             }
 
             //---- build the Uno model ----
-            //Always report the problem size and the chosen preset. This is the cheapest way to
-            //confirm from the outside that the interface really saw the expected model (e.g. that
-            //override_num_steps/number_of_steps actually shrank it) and that the preset took.
+            //Report size and preset, so an external log shows what the interface saw.
             std::cout << "SOUFFLE: building model '" << this->myProblem->options.mission_name
                       << "' with " << this->nX << " variables, " << number_constraints
                       << " constraints, " << jacobian_row.size()
@@ -501,12 +488,9 @@ namespace EMTG
                     &Souffle_interface::objective_gradient_callback))
                 throw std::runtime_error("SOUFFLE: uno_set_objective failed.");
 
-            //Constraints: EMTG's F[1..nF-1] with their bounds.
-            //The Jacobian callback passes this->G through unchanged, so the model sparsity must be
-            //exactly the constraint part of EMTG's G in the same order. We therefore build the
-            //model from a *filtered* sparsity that keeps only constraint rows, and mirror the same
-            //filtering inside jacobian_callback via constraint_jacobian_source.
-            //Stored so that the Jacobian callback maps Uno's compacted values back onto G.
+            //Constraints: EMTG's F[1..nF-1]. The Jacobian callback passes this->G through
+            //unchanged, so the model sparsity must be exactly the constraint rows of G, in
+            //order; constraint_jacobian_source maps Uno's compacted values back onto G.
             this->constraint_jacobian_source = constraint_jacobian_source;
 
             if (number_constraints > 0)
@@ -530,12 +514,7 @@ namespace EMTG
                 throw std::runtime_error("SOUFFLE: uno_create_solver failed.");
             SolverGuard solver(raw_solver);
 
-            //Preset selection. Uno's two presets that matter here are:
-            //  filtersqp - trust-region Fletcher-filter SQP (closest analogue of SNOPT)
-            //  ipopt     - interior-point method (Uno's IPM, closest analogue of IPOPT)
-            // Both work without a user Hessian (Uno falls back to L-BFGS). Selectable at runtime so
-            // the two can be A/B compared on the same problem without rebuilding:
-            //   set SOUFFLE_UNO_PRESET=ipopt
+            //Preset: filtersqp (default) or ipopt. Set SOUFFLE_UNO_PRESET to override.
             std::string uno_preset = "filtersqp";
             if (const char* preset_from_env = std::getenv("SOUFFLE_UNO_PRESET"))
             {

@@ -1,17 +1,11 @@
-// SOUFFLE: EMTG NLP solver interface backed by the Uno solver.
+// SOUFFLE: NLP solver interface backed by Uno.
 //
-// This is the Uno counterpart of SNOPT_interface. It implements the single pure virtual of
-// NLP_interface (run_NLP) by assembling an Uno model from the EMTG problem's already-computed
-// sparsity pattern and driving it through Uno's C API, which is reached via dynamic loading
-// (see SouffleApi.h).
+// The Uno counterpart of SNOPT_interface: implements run_NLP by building an Uno model from
+// the EMTG problem and driving it through Uno's C API (loaded at run time, see SouffleApi.h).
 //
-// The problem formulation is unchanged: EMTG's transcription (MGALT phases, match-point
-// constraints, control-magnitude constraints, virtual propellant tanks, objective) is solved
-// as-is. Only the NLP solver differs, which is what makes the two binaries comparable.
-//
-// Variable scaling contract (identical to SNOPT_interface):
-//   Uno sees SCALED variables with  lower = 0,  upper = (Xupper - Xlower) / X_scale_factor
-//   The unscaled value is  X_unscaled = X_scaled * X_scale_factor + myProblem->Xlowerbounds.
+// Scaling contract (same as SNOPT_interface):
+//   lower = 0, upper = (Xupper - Xlower) / X_scale_factor
+//   X_unscaled = X_scaled * X_scale_factor + Xlowerbounds
 //
 // Licensed under the NASA Open Source Agreement 1.3, like the rest of EMTG.
 
@@ -27,10 +21,8 @@ namespace EMTG
 {
     namespace Solvers
     {
-        //Uno's C API uses "uno_int" for every integer argument (see Uno_C_API.h / uno_int.h).
-        //It is an alias of the platform int; asserting that here lets this header describe the
-        //callback signatures without pulling the whole Uno C API into every translation unit
-        //that includes it. SouffleApi.h includes the real header and resolves the real symbols.
+        //Uno's C API spells its integer type "uno_int". Declared here as an alias so this
+        //header can describe the callback signatures without including the Uno C API.
         typedef int uno_int;
         static_assert(sizeof(uno_int) == sizeof(int),
             "SOUFFLE: uno_int must match the platform int for the callback ABIs to line up");

@@ -1,15 +1,7 @@
-// SOUFFLE: dynamic-loading wrapper for the Uno solver's C API.
+// SOUFFLE: run-time loader for the Uno C API.
 //
-// WHY DYNAMIC LOADING
-// -------------------
-// The original EMTG is built with MSVC (cl.exe + NMake + Boost vc143), while the official
-// Uno Windows binaries are MinGW builds. MSVC cannot link a MinGW import library
-// (libuno.dll.a). However libuno.dll exports the Uno C API with *undecorated C names*
-// (uno_create_model, uno_optimize, ...), and the C ABI is stable across compilers, so
-// LoadLibraryEx + GetProcAddress works from MSVC code. See _probe/msvc_probe.c.
-//
-// This keeps the build on the original toolchain: Boost, SPICE, the Windows SDK and the
-// SNOPT path are unchanged.
+// MSVC cannot link Uno's MinGW import library, so libuno.dll is loaded with LoadLibraryEx
+// and its C symbols resolved with GetProcAddress.
 //
 // Licensed under the NASA Open Source Agreement 1.3, like the rest of EMTG.
 
