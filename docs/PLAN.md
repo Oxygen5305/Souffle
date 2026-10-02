@@ -9,7 +9,7 @@
 | 编号 | 约束 | 校验方式 |
 |---|---|---|
 | H1 | **原版 `EMTG\` 目录零改动**，一个字节都不能动 | 36,775 文件基线清单 + 逐文件 SHA 比对；见 §4 |
-| H2 | 所有改动只落在 `Souffle_Cheese\` | 构建命令 `-S Souffle_Cheese -B Souffle_Cheese/build` |
+| H2 | 所有改动只落在本仓库 | 构建命令 `-S . -B build`（禁止 in-source 构建污染源码树） |
 | H3 | 复用原 EMTG 资源一律**复制**，不就地修改 | 代码审查 |
 | H4 | 发行包在新机器上**双击即用**：不装编译器/Python、不设环境变量 | 干净环境实测（仅系统 `PATH`） |
 | H5 | `SOUFFLE_NLP_SOLVER=SNOPT` 时行为与原版一致 | 同二进制内保留 SNOPT 路径 |
@@ -147,4 +147,4 @@ cmake -S . -B build -G 'NMake Makefiles' `
 | 成员名 `mySNOPT` → `mySolver` | 纯命名清理，涉及 5 个文件 |
 | 同口径消除发射日差异 | 把发射历元钉死到基准的 2044-03-14 再各跑一次 |
 | 批量运行二级流水线 | 驱动脚本已可用（`tier2_driver.py`），可扩展到多 case |
-| 为 `Souffle_Cheese` 建 Git 仓库 | 避免再次出现不可回滚的损坏 |
+| 为仓库启用分支保护与备份 | 避免再次出现不可回滚的损坏 |

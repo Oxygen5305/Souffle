@@ -56,7 +56,7 @@ foreach ($dir in $exeDirs) {
     if (Test-Path $candidate) { $exe = $candidate; break }
 }
 if (-not $exe) {
-    throw "EMTGv9.exe not found. Build first (see build_Souffle_Cheese.ps1) or pass a packaged build. Looked in: $($exeDirs -join ', ')"
+    throw "EMTGv9.exe not found. Build first (see BUILDING.md) or pass a packaged build. Looked in: $($exeDirs -join ', ')"
 }
 Write-Host "executable: $exe" -ForegroundColor Cyan
 
