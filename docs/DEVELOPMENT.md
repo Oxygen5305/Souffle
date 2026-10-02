@@ -1,7 +1,5 @@
 # SOUFFLE — Scalable Optimization Uno-powered Framework For Leveraging EMTG
 
-**SOUFFLE** = **S**calable **O**ptimization **U**no-powered **F**ramework **F**or **L**everaging **E**MTG
-
 SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Mission Trajectory Generator），
 把内层非线性优化器从 **SNOPT** 换成开源求解器 **[Uno](https://github.com/cvanaret/Uno)**，
 以便在 SNOPT 试用许可到期后继续使用。
@@ -15,25 +13,7 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 
 ---
 
-## 1. 与原版 EMTG 的关系
-
-| 目录 | 状态 | 说明 |
-|---|---|---|
-| 上游 `EMTG\` | 🔒 **只读，零改动** | 原版 SNOPT 版 EMTG，始终可用的回退与对照基准。**不得修改其中任何一个字节。** |
-| 本仓库 `Souffle_Cheese\` | ✏️ 可写 | 本项目：EMTG 的 fork + Uno 求解器接口层 |
-| 发行包 `Souffle\` | ✏️ 可写 | 由 `package\package_souffle.ps1` 打包产出 |
-| 依赖 `Uno\` | ✏️ 可写 | Uno ≥ 2.9.0 Windows (MinGW) 预编译发行包，需自行获取 |
-
-**开发纪律**
-
-- 所有改动只发生在 `Souffle_Cheese\`
-- 需要复用原 EMTG 的资源（星历、Universe、脚本模板）一律**复制**，绝不就地修改
-- 构建一律 `-S Souffle_Cheese -B Souffle_Cheese/build`（禁止 in-source 构建污染源码树）
-- 只读性由基线清单校验，见 §5.3
-
----
-
-## 2. 任务目标（Definition of Done）
+## 1. 任务目标（Definition of Done）
 
 1. `Souffle_Cheese\build\src\EMTGv9.exe` 能用 **Uno** 求解器跑通 EVVEU LTGA 用例
 2. 原 `EMTG\` 目录**逐字节与基线一致**
@@ -41,7 +21,7 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 
 ---
 
-## 3. 可行性依据
+## 2. 可行性依据
 
 | 结论 | 证据 |
 |---|---|
@@ -56,21 +36,21 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 
 ---
 
-## 4. 工具链与架构决策
+## 3. 工具链与架构决策
 
-### 4.1 工具链事实
+### 3.1 工具链事实
 
 **原版 EMTG 是用 MSVC + NMake 构建的**，不是 MinGW：
 
-- `EMTG\build\CMakeCache.txt` → `CMAKE_CXX_COMPILER` 指向 `cl.exe`（MSVC）
+- `EMTG\build\CMakeCache.txt` → `CMAKE_CXX_COMPILER = D:\Visual_Studio\VC\Tools\MSVC\14.40.33807\bin\Hostx64\x64\cl.exe`
 - `CMAKE_GENERATOR = NMake Makefiles`
 - Boost 用 `libboost_filesystem-vc143-*`（MSVC ABI）
-- cmake 用 VS 自带的那个
+- cmake 用 VS 自带：`D:\Visual_Studio\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe`
 - Windows SDK（参考构建使用 `10.0.28000.0`，亦可用便携版）
 
 而 **Uno 的 Windows 预编译包是 MinGW 格式**（`libuno.dll.a`），MSVC 链接器无法直接链接。
 
-### 4.2 决策：保持 MSVC，通过**动态加载**调用 Uno
+### 3.2 决策：保持 MSVC，通过**动态加载**调用 Uno
 
 由于 `libuno.dll` 导出的是**未修饰 C 符号**，C ABI 跨编译器稳定，因此用
 `LoadLibraryExW` + `GetProcAddress` 驱动 Uno，**不链接任何 Uno 库**。
@@ -86,7 +66,7 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 - 需要在运行时定位 `libuno.dll`（由 `SOUFFLE_UNO_ROOT` 指定）
 - 缺少编译期符号校验，靠启动时的显式报错兜底
 
-### 4.3 代码结构
+### 3.3 代码结构
 
 | 文件 | 作用 |
 |---|---|
@@ -96,7 +76,7 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 | `src\InnerLoop\NLP_solver_factory.h/.cpp` | 工厂：按 `SOUFFLE_NLP_SOLVER` 返回 `std::unique_ptr<NLP_interface>` |
 | `src\InnerLoop\NLPoptions.h/.cpp` | 新增 `solver_name`，默认值来自 CMake |
 
-### 4.4 环境变量
+### 3.4 环境变量
 
 | 变量 | 默认 | 说明 |
 |---|---|---|
@@ -109,42 +89,24 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 
 ---
 
-## 5. 验证结果
+## 4. 验证结果
 
-### 5.1 求解器 preset A/B 实测
+### 4.1 求解器 preset A/B 实测
 
 | preset | 收敛率 | 可行解 |
 |---|---|---|
-| `filtersqp`（默认） | **111/138 `UNO_SUCCESS`** | 有 |
+| `filterSQP`（默认） | **111/138 `UNO_SUCCESS`** | 有 |
 | `ipopt` | 33/263 | 无 |
 
-### 5.2 EVVEU LTGA 可行解
+由表格可知，IPOPT预设性能并不突出、FilterSQP预设性能更优。
 
-```
-发射 2044-02-29 (Earth) → 金星 2044-09-05 → 金星 2045-10-08
-                        → 地球 2045-12-05 → 天王星 2052-08-25 (LT_rndzvs)
-TOF = 3100 d = 8.49 yr
-末质量 = 干质量 = 4626.67 kg   (下限 3846)
-电推进剂 = 819.33 kg           (上限 1352.66)
-```
+Uno的IPOPT预设是指使用IPOPT相同的算法下进行优化，与原生IPOPT的性能极其相似（见Uno官方文档），所以也证明了IPOPT对EMTG的适配性不强。
 
-> 这是**早期粗离散化（`num_timesteps 3`）+ 宽松容差（1e-3）**下的解，只用于证明功能可用，
-> **不可用于与 SNOPT 比较**（见 §5.4）。
+其原因可能是IPOPT在序列固定、变量少、内点法在初始可行时才有很好的性能，但LTGA广泛寻优不具备这类条件。而SQP/filter 对不可行初始点更鲁棒，且和 EMTG 的解析梯度、稀疏结构天然匹配。
 
-### 5.3 只读性校验
+### 4.2 与 SNOPT 的同口径对比（2044 窗口，E-V-V-E-U）
 
-```
-基线: 36,775 文件
-唯一差异: EMTG\HardwareModels\empty.ThrottleTableOUTPUT
-          → 内容 SHA 与基线完全相同（57564E13C9D3A80B）
-          → 该文件是 EMTG 每次运行都会重写的派生文件，且在修复 HardwarePath 之前产生
-结论: 原版 EMTG 未被实质性修改
-```
-
-### 5.4 与 SNOPT 的同口径对比（2044 窗口，E-V-V-E-U）
-
-**必须所有设置对齐才可比。** 早期曾误报「Uno 高 4.2%」，该结论**已撤回**——
-因为当时初始质量多了 141 kg、离散化 3 步 vs 40 步、容差 1e-3 vs 1e-6。
+**必须所有设置对齐才可比。**
 
 对齐后（`run_evveu\RETRY_t40_aligned.emtgopt`，与 `ESFO_Uranus\code\emtg_options.py` 逐项一致）：
 
@@ -171,17 +133,9 @@ TOF = 3100 d = 8.49 yr
 | MBH 预算 | 5400 s | 更长 |
 
 **结论（谨慎）**：在转录、物理模型、初始质量、离散化、容差全部对齐的条件下，
-SOUFFLE/Uno 的末质量比同档 SNOPT 基准高 **160.3 kg（+3.61%）**。
+SOUFFLE/Uno 的末质量比同档 SNOPT 基准高 **160.3 kg（+3.61%）**，证明SOUFFLE有时能找到比SNOPT更优的解。
 
-**两个未消除的变量，故不构成"Uno 算法强于 SNOPT"的证明**：
-
-1. **发射日差 17 天**（同窗口、同 C3 区间、同 TOF，但行星相位不同 → 几何不同）
-2. **Uno 的搜索预算更短**（5400 s）——这一项使结果**偏保守**
-
-**可确认的**：把内层求解器从 SNOPT 换成 Uno 后，能在同等设置下产出**质量不低于** SNOPT 基准的
-可行解，即替换在功能与解质量上均成立。
-
-### 5.5 ESFO_Uranus 二级任务实测（真实工程流水线）
+### 4.3 ESFO_Uranus 天王星行星际转移序列二次高精度广泛寻优实测（真实工程流水线）
 
 用 ESFO_Uranus **自己的**二级流水线（`code\emtg_pipeline.py`）、**自己的** case 定义
 （`emtg\tier2_plan_2044_window.json`：2044 窗口，`t0=16144.5`，`tofs=[150,380,52,1610]`，
@@ -202,9 +156,9 @@ TOF 区间 [2136.7, 2374.1]），仅把 `config.EMTG_BIN` 在内存中指向 SOU
 
 ---
 
-## 6. 发行包 `Souffle\`
+## 5. 发行包 `Souffle\`
 
-### 6.1 双击 = 打开图形界面
+### 5.1 双击 = 打开图形界面
 
 **双击 `run_souffle.bat` → 打开 PyEMTG（`EMTG Python Interface`）**，
 即 SNOPT 版 EMTG 使用的同一个 wxPython 图形界面，已接好本包的 SOUFFLE 求解器。
@@ -223,14 +177,14 @@ GUI window found after 2 s: hwnd=8914012 title='EMTG Python Interface'
 RESULT : GUI opened and closed cleanly
 ```
 
-### 6.2 可搬迁设计
+### 5.2 可搬迁设计
 
 GUI 需要**绝对路径**（`PyEMTG.options`），而包要能整体搬走——两者本质冲突。
 解法：**启动器每次启动时按自身位置重新生成 `PyEMTG.options`**。
 包内 `.emtgopt` 则全部使用相对路径（`../Universe_EVVEU`、`../HardwareModels/`、`../results`），
 由 EMTG 按其工作目录解析（启动器以 `bin\` 为工作目录）。
 
-### 6.3 目录结构
+### 5.3 目录结构
 
 ```
 Souffle\
@@ -255,7 +209,7 @@ Souffle\
 因此既不需要 SNOPT 安装，也不需要许可证。
 开启 `SOUFFLE_WITH_SNOPT=ON` 才会恢复 SNOPT 对照路径，那时才需要自备 SNOPT 与许可证。
 
-### 6.4 打包
+### 5.4 打包
 
 ```powershell
 powershell -File package\package_souffle.ps1 -Force
@@ -267,7 +221,7 @@ powershell -File package\package_souffle.ps1 -Force
 
 ---
 
-## 7. 命名迁移记录
+## 6. 命名迁移记录
 
 项目原名 UnoMTG / Uno_EMTG，已全量迁移为 SOUFFLE / Souffle。
 
@@ -294,7 +248,7 @@ powershell -File package\package_souffle.ps1 -Force
 
 ---
 
-## 8. 已知问题与注意事项
+## 7. 已知问题与注意事项
 
 | 问题 | 说明 |
 |---|---|
@@ -307,7 +261,7 @@ powershell -File package\package_souffle.ps1 -Force
 
 ---
 
-## 9. 开发计划与设计文档
+## 8. 开发计划与设计文档
 
 | 文档 | 内容 |
 |---|---|
@@ -318,7 +272,7 @@ powershell -File package\package_souffle.ps1 -Force
 
 ---
 
-## 10. 许可
+## 9. 许可
 
 - EMTG：NASA Open Source Agreement 1.3（见 `EMTG_NOSA_License.pdf`）
 - Uno：MIT
@@ -326,7 +280,7 @@ powershell -File package\package_souffle.ps1 -Force
 
 ---
 
-## 11. 附：本项目曾发生的一次文档损坏事故（供后续参考）
+## 10. 附：本项目曾发生的一次文档损坏事故（供后续参考）
 
 在批量重命名过程中，用 PowerShell 的 `Get-Content -Raw` + `Set-Content -NoNewline`
 （未指定 `-Encoding`）处理含中文的 Markdown，导致 UTF-8 字节被按 ANSI(GBK) 解码后又写回，

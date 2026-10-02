@@ -9,14 +9,11 @@
 换成开源求解器 **[Uno](https://github.com/cvanaret/Uno)** —— MGALT 转录不变、任务建模不变、
 输出不变，**且不再需要任何商业许可证**。
 
-SOUFFLE 是 *Scalable Optimization Uno-powered Framework For Leveraging EMTG* 的缩写。
-和它同名的甜点一样，这道菜主要是空气：整个求解器接口只是薄薄一层，盖在 EMTG 之上。
-
 > English docs: [README.md](README.md)
 
 | 组成 | 说明 |
 |---|---|
-| **求解器** | Uno ≥ 2.9.0（默认 `filtersqp`，另有 `ipopt`、`funnel`、`Penalty`），运行时动态加载 |
+| **求解器** | Uno ≥ 2.9.0（默认 filtersqp，另有 ipopt、funnel、Penalty），运行时动态加载 |
 | **转录方式** | EMTG MGALT + MBH 全局搜索，与原版完全一致 |
 | **图形界面** | PyEMTG（wxPython），与 SNOPT 版使用的是同一个界面 |
 | **默认构建** | **不需要 SNOPT 安装、不引用 SNOPT 头文件、可执行文件不导入 `snopt7.dll`** |
@@ -99,7 +96,7 @@ EMTGv9.exe my_case.emtgopt
 |---|---|---|
 | `SOUFFLE_NLP_SOLVER` | `Uno` | `Uno`；若构建时启用了 SNOPT，也可填 `SNOPT` |
 | `SOUFFLE_UNO_ROOT` | 配置时写入 | `libuno.dll` 所在目录 |
-| `SOUFFLE_UNO_PRESET` | `filtersqp` | Uno 预设：`filtersqp`、`ipopt`、`funnel`、`Penalty` |
+| `SOUFFLE_UNO_PRESET` | `filtersqp` | Uno 预设：filtersqp、ipopt、funnel、Penalty |
 
 无需重新编译即可切换到内点法：
 
@@ -131,9 +128,7 @@ C 符号，C ABI 跨编译器稳定。代价是 DLL 必须在运行时定位（`
 
 改这个接口时注意两处映射约定：
 
-- **缩放**：EMTG 使用缩放后的变量。传给 Uno 的是 `lower = 0`、
-  `upper = (X_upper − X_lower) / X_scale`，结果按
-  `X_unscaled = X_scaled · X_scale + X_lower` 还原。
+- **缩放**：EMTG 使用缩放后的变量。传给 Uno 的是 lower = 0 、upper = (X_upper − X_lower) / X_scale，结果按 X_unscaled = X_scaled · X_scale + X_lower 还原。
 - **刻意不注册终止回调**：注册后每次求解都返回 `opt_status=5`（`UNO_USER_TERMINATION`）
   且只迭代 1 次；改传 `nullptr` 后迭代数从 1 升到 16000。
 

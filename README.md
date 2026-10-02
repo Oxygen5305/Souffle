@@ -9,15 +9,11 @@ NASA's [EMTG](https://github.com/nasa/EMTG) with its inner-loop NLP solver swapp
 commercial **SNOPT** to the open-source **[Uno](https://github.com/cvanaret/Uno)** — same MGALT
 transcription, same mission modelling, same outputs, **no commercial license required**.
 
-The name stands for *Scalable Optimization Uno-powered Framework For Leveraging EMTG* — and
-like the dessert it is named after, it is mostly air: the whole solver interface is a thin
-layer laid over EMTG.
-
 > 中文说明见 [README_zh.md](README_zh.md)
 
 | Layer | What it is |
 |---|---|
-| **Solver** | Uno ≥ 2.9.0 (`filtersqp` by default; also `ipopt`, `funnel`, `Penalty`), loaded at run time |
+| **Solver** | Uno ≥ 2.9.0 (filterSQP by default; also ipopt, funnel, Penalty), loaded at run time |
 | **Transcription** | EMTG MGALT, with MBH global search — unchanged from upstream |
 | **GUI** | PyEMTG (wxPython), the same interface the SNOPT build uses |
 | **Default build** | needs **no SNOPT installation, no SNOPT headers, and does not import `snopt7.dll`** |
