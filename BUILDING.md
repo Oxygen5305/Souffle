@@ -17,7 +17,7 @@ compiled out unless you explicitly turn it on.
 | **Uno** ≥ 2.9.0 | Windows release (MinGW build). See below |
 | SPICE kernels | `de440s.bsp`, `naif0012.tls`, `pck00010.tpc` — see §3 |
 
-> The MinGW runtime DLLs shipped with Uno are needed at **runtime**, not at build time.
+> Uno's MinGW runtime DLLs are needed at run time, not at build time.
 
 ---
 
@@ -110,9 +110,8 @@ EMTGv9.exe my_case.emtgopt
 | `SOUFFLE_UNO_ROOT` | baked in at configure time | where `libuno.dll` lives |
 | `SOUFFLE_UNO_PRESET` | `filtersqp` | Uno preset: `filtersqp`, `ipopt`, `funnel`, `Penalty` |
 
-> The preset value must be **uppercase** where Uno expects an uppercase token (e.g. the
-> logger). Lowercase values are silently rejected by Uno and fall back to its default,
-> which once produced a 22 MB log file.
+> Uno option tokens are case-sensitive. Lowercase values are rejected silently and fall
+> back to Uno's defaults.
 
 ---
 
@@ -132,7 +131,7 @@ dumpbin /imports build\src\EMTGv9.exe | findstr /I snopt
 
 ---
 
-## 7. Notes and pitfalls
+## 7. Pitfalls
 
 | Symptom | Cause / fix |
 |---|---|

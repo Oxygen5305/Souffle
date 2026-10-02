@@ -5,16 +5,6 @@ These are the README drafts that were written directly on GitHub's web editor on
 pushed to that branch. They are kept here for reference only — the current, canonical
 documents are [`README.md`](../README.md) and [`README_zh.md`](../README_zh.md).
 
-Three points in these drafts were corrected in the canonical versions:
-
-1. **License.** The drafts carry a GPL-3.0 badge. SOUFFLE is a fork of NASA's EMTG and must
-   keep EMTG's license, the **NASA Open Source Agreement 1.3** — not GPL-3.0 (that is the
-   license of the *other* project whose README template was used).
-2. **Language badge.** The drafts carry a `Python 3.13 | 3.14` badge. SOUFFLE is C++ built
-   with MSVC + NMake; Python is only the runtime of the bundled PyEMTG GUI.
-3. **Preset switching.** This one is correct as written and is worth keeping: presets cannot
-   be switched from the GUI, only through the `SOUFFLE_UNO_PRESET` environment variable.
-
 ---
 
 ## Archived: `README.md` (English draft)
@@ -66,10 +56,3 @@ Uno非线性优化器官网:https://unosolver.readthedocs.io/en/latest/
 ```
 
 ---
-
-## Two claims worth revisiting
-
-| Draft claim | Measured reality |
-|---|---|
-| "SOUFFLE's computational performance is sometimes even better than EMTG's" | True but must be stated with its caveats. On the same 2044 window with initial mass, `num_timesteps` and tolerances all aligned, SOUFFLE/Uno reached 4598.48 kg vs SNOPT's 4438.15 kg (+3.61%) — **but** the launch dates differ by 17 days and the Uno run had a **shorter** search budget. The cleaner evidence is the unmodified ESFO_Uranus tier-2 pipeline: 4150.98 kg vs 4150.07 kg, a 0.022 % difference. See [DEVELOPMENT.md](DEVELOPMENT.md). |
-| "Testing shows that FilterSQP achieves the best computational quality and speed" | Consistent with what we measured: `filtersqp` converged **111/138** solves, `ipopt` only **33/263**. Worth keeping the numbers, since a bare "best" invites the question "best how?". |

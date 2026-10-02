@@ -4,7 +4,7 @@
 
 ---
 
-## 1. 硬约束（不可让步）
+## 1. 硬约束
 
 | 编号 | 约束 | 校验方式 |
 |---|---|---|
@@ -88,7 +88,7 @@ baseline = 36,775 文件
 
 ---
 
-## 6. 事故记录：文档编码损坏
+## 6. 文档编码损坏事故
 
 **经过**：批量重命名时用 `Get-Content -Raw` + `Set-Content -NoNewline`（未指定 `-Encoding`）
 处理含中文的 Markdown。本机 PowerShell 默认 ANSI(GBK)，UTF-8 字节被按 GBK 解码后又写回，

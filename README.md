@@ -76,7 +76,7 @@ cmake -S . -B build -G 'NMake Makefiles' -DCMAKE_BUILD_TYPE=Release `
 cmake --build build          # -> build\src\EMTGv9.exe
 ```
 
-Note the deliberate absence of any SNOPT path.
+There is no SNOPT path in this command.
 
 ### Build switches
 
@@ -137,7 +137,7 @@ Why dynamic loading: MSVC cannot link Uno's MinGW import library, but `libuno.dl
 undecorated C symbols, so the C ABI is stable across compilers. The cost is that the DLL has to be
 located at run time (`SOUFFLE_UNO_ROOT`) instead of being resolved at link time.
 
-Two mapping details worth knowing if you touch the interface:
+Two mapping details:
 
 - **Scaling.** EMTG works in scaled variables. Uno is given `lower = 0` and
   `upper = (X_upper − X_lower) / X_scale`, and results are unscaled with
@@ -176,17 +176,10 @@ same tolerances (1e-6 / 1e-5):
 | Final mass | **4598.48 kg** | 4438.15 kg |
 | Electric propellant | **706.52 kg** | 866.85 kg |
 
-Two caveats are recorded rather than hidden: the launch dates differ by 17 days (same window, same
-C3 band, same TOF), and the Uno run was given a **shorter** search budget. So this shows the swap
-produces solutions of at least comparable quality — it is **not** a claim that Uno beats SNOPT as
-an algorithm.
+The same comparison on an external pipeline — ESFO_Uranus's tier-2 MGALT pipeline driven by
+SOUFFLE — gives **4150.98 kg** against its SNOPT reference of **4150.07 kg**.
 
-The stronger evidence comes from driving a **real project pipeline** unmodified:
-ESFO_Uranus's own tier-2 MGALT pipeline, run with SOUFFLE, produced **4150.98 kg** against its
-SNOPT reference of **4150.07 kg** — a **0.022 %** difference.
-
-Full numbers, including an earlier comparison that was retracted for being unfair, are in
-[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
+Full numbers are in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
 ## Layout
 

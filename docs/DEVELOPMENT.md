@@ -15,7 +15,7 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 
 ---
 
-## 1. 与原版 EMTG 的关系（最重要的一条）
+## 1. 与原版 EMTG 的关系
 
 | 目录 | 状态 | 说明 |
 |---|---|---|
@@ -41,7 +41,7 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 
 ---
 
-## 3. 为什么可行（全部为实测证据，非推测）
+## 3. 可行性依据
 
 | 结论 | 证据 |
 |---|---|
@@ -58,7 +58,7 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 
 ## 4. 工具链与架构决策
 
-### 4.1 关键事实（纠正一个常见误判）
+### 4.1 工具链事实
 
 **原版 EMTG 是用 MSVC + NMake 构建的**，不是 MinGW：
 
@@ -289,8 +289,8 @@ powershell -File package\package_souffle.ps1 -Force
   `"SNOPT has crashed ... Creating dumpfile."`、文件名 `.SNOPTcrash`
   —— 这是 EMTG 原有的 MBH **try-catch 兜底分支**，触发条件是**求解抛异常**（与用哪个求解器无关）。
   改动会影响 ESFO_Uranus 的归档/扫描逻辑，故保留。
-  > 注意：探测阶段（宽松时间 + 无种子）首轮 NLP 发散会正常触发它并留下 `.SNOPTcrash` 文件，
-  > **这不代表真的调用了 SNOPT**。
+      > 探测阶段（宽松时间 + 无种子）首轮 NLP 发散会触发它并留下 .SNOPTcrash 文件。
+      > 该文件与求解器选择无关。
 
 ---
 

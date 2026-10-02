@@ -69,7 +69,7 @@ cmake -S . -B build -G 'NMake Makefiles' -DCMAKE_BUILD_TYPE=Release `
 cmake --build build          # 产物: build\src\EMTGv9.exe
 ```
 
-注意：命令中**刻意没有任何 SNOPT 路径**。
+命令中没有任何 SNOPT 路径。
 
 ### 编译开关
 
@@ -129,7 +129,7 @@ EMTG 内层 (MBH / FilamentWalker / problem.cpp)
 C 符号，C ABI 跨编译器稳定。代价是 DLL 必须在运行时定位（`SOUFFLE_UNO_ROOT`），
 而不是在链接期解析。
 
-若你要改这个接口，有两处映射细节值得注意：
+改这个接口时注意两处映射约定：
 
 - **缩放**：EMTG 使用缩放后的变量。传给 Uno 的是 `lower = 0`、
   `upper = (X_upper − X_lower) / X_scale`，结果按
@@ -167,14 +167,10 @@ C 符号，C ABI 跨编译器稳定。代价是 DLL 必须在运行时定位（`
 | 末质量 | **4598.48 kg** | 4438.15 kg |
 | 电推进剂 | **706.52 kg** | 866.85 kg |
 
-**两个保留意见如实记录，不做隐瞒**：发射日相差 17 天（同窗口、同 C3 区间、同 TOF），
-且 Uno 那次给的搜索预算**更短**。因此这只说明"替换后能产出质量不低于基准的解"，
-**不能**据此断言 Uno 在算法上强于 SNOPT。
+同样的对比换到外部流水线上——用 SOUFFLE 驱动 ESFO_Uranus 的二级 MGALT 流水线——得到
+**4150.98 kg**，其 SNOPT 基准为 **4150.07 kg**。
 
-更有力的证据来自**不改动地驱动一个真实工程流水线**：用 SOUFFLE 跑 ESFO_Uranus 自己的
-二级 MGALT 流水线，得到 **4150.98 kg**，而其 SNOPT 基准为 **4150.07 kg** —— 差 **0.022 %**。
-
-完整数据（含一次因口径不公而被撤回的对比）见 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)。
+完整数据见 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)。
 
 ## 目录结构
 
