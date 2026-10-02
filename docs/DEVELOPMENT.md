@@ -62,10 +62,10 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 
 **原版 EMTG 是用 MSVC + NMake 构建的**，不是 MinGW：
 
-- `EMTG\build\CMakeCache.txt` → `CMAKE_CXX_COMPILER = D:\Visual_Studio\VC\Tools\MSVC\14.40.33807\bin\Hostx64\x64\cl.exe`
+- `EMTG\build\CMakeCache.txt` → `CMAKE_CXX_COMPILER` 指向 `cl.exe`（MSVC）
 - `CMAKE_GENERATOR = NMake Makefiles`
 - Boost 用 `libboost_filesystem-vc143-*`（MSVC ABI）
-- cmake 用 VS 自带：`D:\Visual_Studio\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe`
+- cmake 用 VS 自带的那个
 - Windows SDK（参考构建使用 `10.0.28000.0`，亦可用便携版）
 
 而 **Uno 的 Windows 预编译包是 MinGW 格式**（`libuno.dll.a`），MSVC 链接器无法直接链接。
