@@ -4,15 +4,6 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 把内层非线性优化器从 **SNOPT** 换成开源求解器 **[Uno](https://github.com/cvanaret/Uno)**，
 以便在 SNOPT 试用许可到期后继续使用。
 
-## 目录约定
-
-| 目录 | 内容 |
-|---|---|
-| `Souffle_Cheese\` | **开发树**：源码、构建脚本、文档、验证记录 |
-| `Souffle\` | **自包含发行包**：双击 `run_souffle.bat` 打开 PyEMTG 图形界面 |
-
----
-
 ## 1. 任务目标（Definition of Done）
 
 1. `Souffle_Cheese\build\src\EMTGv9.exe` 能用 **Uno** 求解器跑通 EVVEU LTGA 用例
