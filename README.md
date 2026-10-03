@@ -46,9 +46,12 @@ only the solver interface is new.
 
 ### 1. Packaged binary
 
-Download the self-contained release and double-click the launcher. It bundles the executable, the
-Uno runtime, the **PyEMTG GUI with its own Python interpreter**, SPICE kernels, and hardware
-models — nothing to install, no environment variables to set.
+**[Download `Souffle.zip` from the Releases page »](../../releases/latest)**
+
+Unzip it anywhere and double-click `run_souffle.bat`. The folder is self-contained: the
+executable, the Uno runtime, the **PyEMTG GUI with its own Python interpreter**, the SPICE
+kernels and the hardware models are all inside — nothing to install, no environment
+variables to set.
 
 | I want to… | Do this |
 |---|---|
