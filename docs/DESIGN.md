@@ -177,4 +177,4 @@ SOUFFLE[solve]: preset=filtersqp opt_status=4 sol_status=0 iters=2012 cpu=23.79 
 | `_probe\run_build.ps1` | 仅增量编译 |
 | `_probe\gui_window_check.py` | 按窗口标题验证 GUI 是否真的打开 |
 | `_probe\find_encoding_damage.py` | 校验含非 ASCII 的文件是否为有效 UTF-8 |
-| `tier2_driver.py` | 用 SOUFFLE 驱动 ESFO_Uranus 二级流水线（不修改该工程） |
+| `tier2_driver.py` | 用 SOUFFLE 驱动 ESFO_Uranus 二级流水线 |
