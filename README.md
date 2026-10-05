@@ -1,19 +1,20 @@
 # SOUFFLE — Scalable Optimization Uno-powered Framework For Leveraging EMTG
 
 [![License](https://img.shields.io/badge/License-NASA%20NOSA%201.3-blue.svg)](https://opensource.org/license/nasa1-3-php)
-[![Solver](https://img.shields.io/badge/solver-Uno%20%7C%20SNOPT-lightgrey)](https://github.com/cvanaret/Uno)
+[![Solver](https://img.shields.io/badge/solver-Uno%20%7C%20Ipopt-lightgrey)](https://github.com/cvanaret/Uno)
 [![Platform](https://img.shields.io/badge/platform-Windows%20x64-lightgrey)](https://www.microsoft.com/en-us/windows)
 [![Built with](https://img.shields.io/badge/built%20with-MSVC%20%2B%20NMake-lightgrey)](https://visualstudio.microsoft.com/)
 
 NASA's [EMTG](https://github.com/nasa/EMTG) with its inner-loop NLP solver swapped from the
-commercial **SNOPT** to the open-source **[Uno](https://github.com/cvanaret/Uno)** — same MGALT
-transcription, same mission modelling, same outputs, **no commercial license required**.
+commercial **SNOPT** to open-source solvers: **[Uno](https://github.com/cvanaret/Uno)** by default
+and **[Ipopt](https://github.com/coin-or/Ipopt)** alongside it. Same MGALT transcription, same
+mission modelling, same outputs, **no commercial license required**.
 
 > 中文说明见 [README_zh.md](README_zh.md)
 
 | Layer | What it is |
 |---|---|
-| **Solver** | Uno ≥ 2.9.0 (filterSQP by default; also ipopt, funnel, Penalty), loaded at run time |
+| **Solvers** | [Uno](https://github.com/cvanaret/Uno) ≥ 2.9.0 (preset `filtersqp` by default; Uno also offers `ipopt`, `funnel` and `Penalty` presets of its own) and [Ipopt](https://github.com/coin-or/Ipopt) 3.14. `united/` runs both and keeps the better answer. |
 | **Transcription** | EMTG MGALT, with MBH global search — unchanged from upstream |
 | **GUI** | PyEMTG (wxPython), the same interface the SNOPT build uses |
 | **Default build** | needs **no SNOPT installation, no SNOPT headers, and does not import `snopt7.dll`** |

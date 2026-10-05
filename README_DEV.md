@@ -97,7 +97,7 @@ Windows 按**名字**解析模块，先加载的一方决定版本，另一方�
 ```
 set SOUFFLE_UNO_ROOT=G:\Py\DeepSeekHarness\Uno
 set SOUFFLE_NLP_SOLVER=Uno
-bin\EMTGv9.exe <case>.emtgopt
+bin\SOUFFLE.exe <case>.emtgopt
 ```
 
 联合寻优的完整用法（含时间设置与输出结构）见 `united\README.md`。

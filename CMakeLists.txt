@@ -51,7 +51,7 @@ endif(NOT IS_DIRECTORY ${SOUFFLE_BIN_DIR})
 # SOUFFLE: make SNOPT optional. With SOUFFLE_WITH_SNOPT=OFF (the default) nothing about
 # SNOPT is required or referenced anywhere: no directory check, no SNOPT headers, no
 # import library. The resulting executable does not import snopt7.dll, so it needs no
-# SNOPT installation and no license - Uno is the only solver compiled in.
+# SNOPT installation and no license. Uno and Ipopt are compiled in instead.
 option(SOUFFLE_WITH_SNOPT "Compile the SNOPT solver interface (requires a SNOPT installation)" OFF)
 
 if (SOUFFLE_WITH_SNOPT)
@@ -63,7 +63,7 @@ if (SOUFFLE_WITH_SNOPT)
 	endif()
 	add_definitions(-DSOUFFLE_WITH_SNOPT)
 else()
-	message(STATUS "SOUFFLE: SNOPT support disabled (SOUFFLE_WITH_SNOPT=OFF) - building an Uno-only binary that does not import snopt7.dll")
+	message(STATUS "SOUFFLE: SNOPT support disabled (SOUFFLE_WITH_SNOPT=OFF) - the binary does not import snopt7.dll; Uno and Ipopt provide the solvers")
 endif()
 
 option(QUIET_SNOPT "Minimizes the SNOPT output to the log." OFF)

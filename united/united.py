@@ -46,10 +46,15 @@ STAGE_WARM = 'warm'
 PICK_ORDER = (STAGE_UNO, STAGE_IPOPT, STAGE_WARM)
 
 
-def solver_env():
-    """两个求解器都要的运行时路径。SOUFFLE_UNO_ROOT 缺了 Uno 会以 126 退出。"""
+def solver_env(solver):
+    """运行时路径 + 该阶段要用的求解器。
+
+    SOUFFLE_UNO_ROOT 缺了 Uno 会以 126 退出；SOUFFLE_NLP_SOLVER 决定同一次构建里跑哪个
+    求解器——发行包只有一个 SOUFFLE.exe，靠这个变量切换。
+    """
     env = dict(os.environ)
     env['PYTHONIOENCODING'] = 'utf-8'
+    env['SOUFFLE_NLP_SOLVER'] = solver
     uno_root = env.get('SOUFFLE_UNO_ROOT', '')
     head = [BIN_DIR, os.path.join(uno_root, 'bin'), os.path.join(uno_root, 'deps')]
     ipopt_lib = env.get('SOUFFLE_IPOPT_LIB')
@@ -61,13 +66,13 @@ def solver_env():
     return env
 
 
-def run_solver(exe, workdir, timeout=900):
+def run_solver(exe, workdir, solver, timeout=900):
     """在 workdir 里跑一个求解器 -> (ok, 秒数, 说明)。"""
     t0 = time.time()
     try:
         with io.open(os.path.join(workdir, 'main.log'), 'w', encoding='utf-8',
                      errors='replace') as log:
-            proc = subprocess.run([exe, 'case.emtgopt'], cwd=workdir, env=solver_env(),
+            proc = subprocess.run([exe, 'case.emtgopt'], cwd=workdir, env=solver_env(solver),
                                   stdout=log, stderr=subprocess.STDOUT, timeout=timeout)
     except subprocess.TimeoutExpired:
         return False, time.time() - t0, '超时'
@@ -82,7 +87,7 @@ def stage_case(template, workdir, **times):
     """把模板 case 铺到一个阶段的工作目录，并改写工作目录与时间设置。"""
     os.makedirs(workdir, exist_ok=True)
     text = io.open(template, encoding='utf-8', errors='replace').read()
-    text = G.rewrite_options(text, workdir, **times)
+    text = G.rewrite_options(text, workdir, root=SOUFFLE_ROOT, **times)
     out = os.path.join(workdir, 'case.emtgopt')
     io.open(out, 'w', encoding='utf-8', newline='').write(text)
     return out
@@ -101,9 +106,11 @@ def solve_one(name, template, root, mode, uno_exe, ipopt_exe):
         stages[stage] = dict(ok=ok, wall_s=round(wall, 1), note=note)
 
     def run_stage(stage, exe, times):
+        # The stage name decides which solver the shared binary runs.
+        stage_solver = {'Uno': 'Uno', 'ipopt': 'IPOPT', 'warm': 'IPOPT'}.get(stage, 'Uno')
         workdir = os.path.join(task_dir, stage)
         stage_case(template, workdir, **times)
-        record(stage, *run_solver(exe, workdir))
+        record(stage, *run_solver(exe, workdir, stage_solver))
 
     # 并行段：Uno 与独立 Ipopt 互不依赖。Uno 慢一倍多，所以并行近乎白赚一个盆地。
     first = [(STAGE_UNO, uno_exe, UNO_TIME), (STAGE_IPOPT, ipopt_exe, IPOPT_TIME)]
@@ -124,7 +131,7 @@ def solve_one(name, template, root, mode, uno_exe, ipopt_exe):
             if not good:
                 record(STAGE_WARM, False, 0.0, '热启动未生成：' + info)
             else:
-                record(STAGE_WARM, *run_solver(ipopt_exe, warm_dir))
+                record(STAGE_WARM, *run_solver(ipopt_exe, warm_dir, 'IPOPT'))
         wall_s += stages[STAGE_WARM]['wall_s']
 
     best_mass, best_path, best_stage = None, None, None
@@ -161,8 +168,11 @@ def main():
     ap.add_argument('--mode', choices=('parallel', 'both'), default='both',
                     help='parallel=Uno ‖ Ipopt 取优；both=再加一次热启动后三者取优')
     ap.add_argument('--jobs', type=int, default=4, help='并发任务数')
-    ap.add_argument('--uno-exe', default=os.path.join(BIN_DIR, 'SOUFFLE.exe'))
-    ap.add_argument('--ipopt-exe', default=os.path.join(BIN_DIR, 'SOUFFLE_ipopt.exe'))
+    # One binary holds both solvers; the stage decides which by environment variable. The
+    # separate --ipopt-exe is kept for a two-executable layout if one is ever built.
+    default_exe = os.path.join(BIN_DIR, 'SOUFFLE.exe')
+    ap.add_argument('--uno-exe', default=default_exe)
+    ap.add_argument('--ipopt-exe', default=default_exe)
     ap.add_argument('--limit', type=int, default=0)
     args = ap.parse_args()
 

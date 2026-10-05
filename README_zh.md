@@ -1,19 +1,20 @@
 # SOUFFLE — Scalable Optimization Uno-powered Framework For Leveraging EMTG
 
 [![License](https://img.shields.io/badge/License-NASA%20NOSA%201.3-blue.svg)](https://opensource.org/license/nasa1-3-php)
-[![Solver](https://img.shields.io/badge/solver-Uno%20%7C%20SNOPT-lightgrey)](https://github.com/cvanaret/Uno)
+[![Solver](https://img.shields.io/badge/solver-Uno%20%7C%20Ipopt-lightgrey)](https://github.com/cvanaret/Uno)
 [![Platform](https://img.shields.io/badge/platform-Windows%20x64-lightgrey)](https://www.microsoft.com/en-us/windows)
 [![Built with](https://img.shields.io/badge/built%20with-MSVC%20%2B%20NMake-lightgrey)](https://visualstudio.microsoft.com/)
 
 把 NASA 的 [EMTG](https://github.com/nasa/EMTG) 的内层非线性优化器，从商业求解器 **SNOPT**
-换成开源求解器 **[Uno](https://github.com/cvanaret/Uno)** —— MGALT 转录不变、任务建模不变、
-输出不变，**且不再需要任何商业许可证**。
+换成开源求解器：默认 **[Uno](https://github.com/cvanaret/Uno)**，同时集成
+**[Ipopt](https://github.com/coin-or/Ipopt)**。MGALT 转录不变、任务建模不变、输出不变，
+**且不再需要任何商业许可证**。
 
 > English docs: [README.md](README.md)
 
 | 组成 | 说明 |
 |---|---|
-| **求解器** | Uno ≥ 2.9.0（默认 filtersqp，另有 ipopt、funnel、Penalty），运行时动态加载 |
+| **求解器** | [Uno](https://github.com/cvanaret/Uno) ≥ 2.9.0（默认预设 `filtersqp`；Uno 自身另有 `ipopt`、`funnel`、`Penalty` 预设）与 [Ipopt](https://github.com/coin-or/Ipopt) 3.14。`united/` 会同时跑两者并取较优解。 |
 | **转录方式** | EMTG MGALT + MBH 全局搜索，与原版完全一致 |
 | **图形界面** | PyEMTG（wxPython），与 SNOPT 版使用的是同一个界面 |
 | **默认构建** | **不需要 SNOPT 安装、不引用 SNOPT 头文件、可执行文件不导入 `snopt7.dll`** |

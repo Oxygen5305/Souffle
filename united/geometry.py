@@ -120,8 +120,30 @@ def apply_geometry(case_text, epoch_mjd, tofs):
     return RE_FLIGHT_TIME.sub(sub, text), written[0]
 
 
-def rewrite_options(case_text, workdir=None, mbh_time=None, solve_time=None):
-    """改写工作目录与两个时间设置。"""
+# Paths in a case are relative to bin/ - that is the working directory run_souffle.bat uses.
+# union search runs the executable from a per-stage folder instead, so they must be absolute.
+_RELATIVE_PATH_KEYS = ('universe_folder', 'HardwarePath', 'pyemtg_path')
+
+
+def absolutise_paths(case_text, root):
+    """Rewrite bin/-relative data paths in a case to absolute ones."""
+    base = os.path.join(root, 'bin')
+
+    def fix(match):
+        value = match.group(2)
+        if not os.path.isabs(value):
+            value = os.path.normpath(os.path.join(base, value))
+        return match.group(1) + value.replace('\\', '/')
+
+    for key in _RELATIVE_PATH_KEYS:
+        case_text = re.sub(r'(?m)^(' + key + r'\s+)(\S+)\s*$', fix, case_text)
+    return case_text
+
+
+def rewrite_options(case_text, workdir=None, mbh_time=None, solve_time=None, root=None):
+    """改写工作目录、两个时间设置，以及 bin/ 相对的数据路径。"""
+    if root:
+        case_text = absolutise_paths(case_text, root)
     if workdir:
         case_text = re.sub(r'(?m)^forced_working_directory\s+.*$',
                            'forced_working_directory ' + workdir.replace('\\', '/'),
