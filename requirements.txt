@@ -1,0 +1,10 @@
+# Python packages PyEMTG (the GUI) imports. Only needed if you run the GUI from a source
+# checkout; the packaged release ships an interpreter with all of these already installed.
+#
+# Versions are those the released interpreter carries, so a source setup matches it.
+wxPython>=4.3.1
+numpy>=2.0
+scipy>=1.14
+matplotlib>=3.9
+astropy>=7.0
+spiceypy>=6.0

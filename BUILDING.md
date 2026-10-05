@@ -79,7 +79,7 @@ $env:LIB     = "$msvc\lib\x64;$sdk\Lib\<ver>\ucrt\x64;$sdk\Lib\<ver>\um\x64"
 & $cmake --build build
 ```
 
-The executable lands in `build\src\EMTGv9.exe`.
+The executable lands in `build\src\SOUFFLE.exe`.
 
 ### CMake options
 
@@ -101,17 +101,40 @@ with a valid SNOPT installation.
 ```bat
 set SOUFFLE_UNO_ROOT=<path to Uno>
 set SOUFFLE_NLP_SOLVER=Uno
-EMTGv9.exe my_case.emtgopt
+SOUFFLE.exe my_case.emtgopt
 ```
 
 | Environment variable | Default | Meaning |
 |---|---|---|
-| `SOUFFLE_NLP_SOLVER` | `Uno` | `Uno` or `SNOPT` (the latter only if compiled in) |
+| `SOUFFLE_NLP_SOLVER` | `Uno` | `Uno`, `IPOPT`, or `SNOPT` / `WORHP` (the latter two only if compiled in) |
 | `SOUFFLE_UNO_ROOT` | baked in at configure time | where `libuno.dll` lives |
-| `SOUFFLE_UNO_PRESET` | `filtersqp` | Uno preset: `filtersqp`, `ipopt`, `funnel`, `Penalty` |
+| `SOUFFLE_IPOPT_LIB` | — | directory holding `ipopt-3.dll`; only `united/` needs it |
+| `SOUFFLE_UNO_PRESET` | `filtersqp` | **Uno's own** preset: `filtersqp`, `ipopt`, `funnel`, `Penalty`. Not the Ipopt solver — use `SOUFFLE_NLP_SOLVER=IPOPT` for that |
 
 > Uno option tokens are case-sensitive. Lowercase values are rejected silently and fall
 > back to Uno's defaults.
+
+---
+
+## 5b. The graphical interface (optional)
+
+The build produces a command-line executable only. PyEMTG, the GUI, is Python, and the source
+tree does not vendor an interpreter — install one and the packages it imports:
+
+```bat
+python -m pip install -r requirements.txt
+```
+
+`requirements.txt` lists wxPython, numpy, scipy, matplotlib, astropy and spiceypy. Then point
+the GUI at the executable you just built by editing `PyEMTG\\PyEMTG.options`:
+
+```
+EMTG_path <path to SOUFFLE.exe>
+default_universe_path <path to your Universe folder>
+```
+
+The packaged release skips all of this: it ships an interpreter with those packages already
+installed, and its launcher regenerates `PyEMTG.options` on every start.
 
 ---
 
@@ -121,7 +144,7 @@ Two independent checks:
 
 ```powershell
 # 1. the import table must not mention snopt7
-dumpbin /imports build\src\EMTGv9.exe | findstr /I snopt
+dumpbin /imports build\src\SOUFFLE.exe | findstr /I snopt
 
 # 2. it must run with snopt7.dll absent and no license
 #    (rename or remove snopt7.dll next to the exe, then run a case)

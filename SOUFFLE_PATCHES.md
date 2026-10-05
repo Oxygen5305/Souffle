@@ -1,8 +1,7 @@
 # SOUFFLE patches applied in this checkout
 
-This tree (`Souffle_Cheese`) is the **editable** copy of SOUFFLE used for the ESFO_Uranus
-project. `G:\Py\DeepSeekHarness\Souffle` (the shipped install) and `SOUFFLE_Git` are
-**read-only** and must not be modified.
+This document records the changes made in a development checkout of SOUFFLE while running
+the ESFO_Uranus project. Line and file references are to this repository.
 
 All changes live in **one file** — `src/InnerLoop/Souffle_interface.cpp` — and every hunk is
 tagged `SOUFFLE FIX (Dn)`. Patches are described with the identifier used throughout the
@@ -286,16 +285,16 @@ build_cheese.bat build       :: configure + nmake
 The script exists because the toolchain is non-obvious on this machine:
 
 * **Windows SDK is not in the registry path.** `D:\Windows Kits\10\` holds only the installer;
-  the SDK actually lives in `G:\Py\DeepSeekHarness\winsdk` (10.0.28000.0). `vcvars64.bat`
+  the SDK lived in a portable copy outside the registry (10.0.28000.0). `vcvars64.bat`
   therefore leaves `WindowsSDKVersion` empty and `rc.exe`/`mt.exe` are not found. The script
   sets `WindowsSdkDir` / `WindowsSDKVersion` / `UniversalCRTSdkDir` and, crucially, prepends
   the real SDK to `INCLUDE`/`LIB` — without that the link fails with
   `LNK1104: cannot open kernel32.lib`.
-* **Uno root** is `G:/Py/DeepSeekHarness/Uno` (has `include/uno`, `bin/libuno.dll`, `deps`,
+* **Uno root** must be the full install (has `include/uno`, `bin/libuno.dll`, `deps`,
   `lib/libuno.dll.a`) — *not* `Souffle\Uno`, which only has `bin`/`deps`.
 * **Boost/GSL/CSpice** are resolved by `EMTG-Config.cmake`, which points at
-  `G:/Py/DeepSeekHarness/EMTG/depend`.
-* The build tree is `build_cheese/`; the stale `build/` copied from `SOUFFLE_Git` is left
+  the EMTG dependency tree (`EMTG-Config.cmake`).
+* The build tree is `build_cheese/`; the stale `build/` copied from `this repository` is left
   untouched because its `CMakeCache.txt` still points at that other tree.
 
 ---
@@ -316,8 +315,32 @@ them.
 | D10 | `FilamentFinder` mode leaves the critical-inequality Jacobian rows at zero | that solver mode is not used by this project (`NLP_solver_mode 1`) |
 | D11 | single-slot evaluation cache can force redundant evaluations | performance only; measure with the bound-but-unused evaluation counters first |
 
-Also worth knowing: `SOUFFLE_Git/docs/DEVELOPMENT.md` §7 documents the Uno status codes
+Also worth knowing: `this repository/docs/DEVELOPMENT.md` §7 documents the Uno status codes
 incorrectly. The real v2.9.0 enum is
 `0 SUCCESS, 1 ITERATION_LIMIT, 2 TIME_LIMIT, 3 EVALUATION_ERROR, 4 ALGORITHMIC_ERROR,
 5 USER_TERMINATION` — so the earlier "111/138 UNO_SUCCESS" A/B figure counted time-limit
 terminations as successes.
+
+---
+
+## Packaging the bundled Python
+
+The release ships a Python interpreter so the GUI needs no installation, and two things about
+that are easy to get wrong - both cost a round of user reports before being found:
+
+1. **A venv is not self-contained.** python/ started life as a virtual environment, whose
+   pyvenv.cfg named the base interpreter on the build machine. Scripts\\pythonw.exe is only a
+   redirector, so on any other machine it failed with
+   ile not found <build machine>\\pythonw.exe. The fix is to copy the base interpreter in
+   (python.exe, pythonw.exe, python3.dll, python313.dll, the VC runtimes, DLLs/,
+   libs/ and the stdlib part of Lib/, keeping the venv's Lib/site-packages), delete
+   pyvenv.cfg, and have the launcher call python\\pythonw.exe directly.
+
+2. **Extension modules have their own dependencies.** Walking python.exe alone is not enough:
+   _ctypes needs fi-8.dll, and _ssl/_sqlite3/_tkinter need libcrypto-3-x64.dll,
+   libssl-3-x64.dll, sqlite3.dll, 	cl86t.dll, 	k86t.dll, while python313.dll itself
+   needs zlib.dll. Walk every .pyd in DLLs/ as well and copy whatever is missing.
+
+Check: run python\\pythonw.exe with PATH set to %SystemRoot%\\System32 only and import
+_ctypes, sqlite3, ssl, wx, numpy, scipy, matplotlib, astropy, spiceypy. All must succeed, and
+sys.prefix must point inside the package.

@@ -1,18 +1,25 @@
-# Souffle_Cheese — 开发说明
+# SOUFFLE 开发说明
 
 ## 这个目录是什么
 
 EMTG 的**可编辑副本**，也是唯一允许修改的 EMTG 源码树。
 
+仓库自身的目录树：
+
 ```
-G:\Py\DeepSeekHarness\
-├─ Souffle\          只读 —— 参考副本，勿改
-├─ SOUFFLE_Git\      只读 —— 上游 git 版本，勿改
-└─ Souffle_Cheese\   可编辑 —— 本文件所在处，所有改动都在这里
+<检出目录>\
+├─ src\             C++ 源码（含 Uno / Ipopt 接口）
+├─ PyEMTG\          图形界面
+├─ Universe*\       天体定义（SPICE 星历需另行下载）
+├─ united\          联合寻优编排
+├─ docs\            设计与开发文档
+└─ build\           构建输出（不入版本库）
 ```
 
-`build\` 是从 SOUFFLE_Git 复制过来的遗留构建树（其 `CMakeCache.txt` 指向那个目录），
-与本项目无关，保留原样不参与构建。
+开发时通常还会在旁边放一份**发行包**（打包结果）和一份 **Uno 安装**，本文件用
+`<发行包>`、`<Uno>` 指代它们。
+
+`build\` 由 CMake 生成，不入版本库；改了头文件后请 clean 重建（见下）。
 
 ## 目录结构
 
@@ -40,7 +47,7 @@ build.bat [uno|ipopt|all] [build|configure|clean]
 
 - **Windows SDK 不在注册表里**。`vcvars64` 查的是 `D:\Windows Kits\10\`，那里只有安装器，
   于是 `WindowsSDKVersion` 为空、`rc.exe`/`ucrt.lib` 找不到。真实 SDK 在
-  `G:\Py\DeepSeekHarness\winsdk`，必须显式设 `INCLUDE`/`LIB`，否则报
+  一份**便携副本**，必须显式设 `INCLUDE`/`LIB` 指向它，否则报
   `cannot open stdio.h` 或 `LNK1104 kernel32.lib`。
 - **改了头文件必须 clean 重建**。增量 nmake 曾漏掉改动过的头文件，把陈旧对象烤进已发布
   的二进制，导致一整天误诊。用 `build.bat all clean`。
@@ -95,7 +102,7 @@ Windows 按**名字**解析模块，先加载的一方决定版本，另一方�
 `libuno.dll` 会直接以 `GetLastError=126` 退出。
 
 ```
-set SOUFFLE_UNO_ROOT=G:\Py\DeepSeekHarness\Uno
+set SOUFFLE_UNO_ROOT=<Uno 安装目录>
 set SOUFFLE_NLP_SOLVER=Uno
 bin\SOUFFLE.exe <case>.emtgopt
 ```
