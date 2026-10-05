@@ -226,7 +226,7 @@ namespace EMTG
         this->mission_type_lowerBound = (PhaseType) 0;
         this->mission_type_upperBound = (PhaseType) 11;
         this->NLP_solver_type_lowerBound = 0;
-        this->NLP_solver_type_upperBound = 1;
+        this->NLP_solver_type_upperBound = 2;
         this->NLP_solver_mode_lowerBound = (NLPMode) 0;
         this->NLP_solver_mode_upperBound = (NLPMode) 2;
         this->MBH_max_not_improve_lowerBound = 1;

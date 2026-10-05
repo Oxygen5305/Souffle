@@ -36,7 +36,7 @@ class MissionOptions(object):
         self.mission_type = 2
         """mission type. Choices are 0 - MGALTS, 1 - FBLTS, 2 - MGALT, 3 - FBLT, 4 - PSBI, 5 - PSFB, 6 - MGAnDSMs, 7 - CoastPhase, 8 - SundmanCoastPhase, 9 - variable phase type, 10 - ProbeEntryPhase, 11 - ControlLawThrustPhase"""
         self.NLP_solver_type = 0
-        """NLP solver type. Choices are 0 - SNOPT, 1 - WORHP"""
+        """NLP solver type. Choices are 0 - Uno, 1 - Ipopt, 2 - SNOPT"""
         self.NLP_solver_mode = 1
         """NLP solver mode. Choices are 0 -  find feasible point only, 1 - find optimal solution, 2 - satisfy equality constraints"""
         self.quiet_NLP = 1
@@ -985,7 +985,7 @@ class MissionOptions(object):
                 optionsFile.write("mission_type " + str(self.mission_type) + "\n")
     
             if (self.NLP_solver_type != 0 or writeAll):
-                optionsFile.write("#NLP solver type\n#0: SNOPT\n#1: WORHP\n")
+                optionsFile.write("#NLP solver type\n#0: Uno\n#1: Ipopt\n#2: SNOPT\n")
                 optionsFile.write("NLP_solver_type " + str(self.NLP_solver_type) + "\n")
     
             if (self.NLP_solver_mode != 1 or writeAll):

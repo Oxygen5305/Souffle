@@ -46,11 +46,22 @@ namespace EMTG
             //Last method description reported by Uno (useful in logs).
             const std::string& get_method_description() const { return this->method_description; }
 
+            //Uno's convergence verdict for the last solve, or -1 if none has run.
+            //UNO_FEASIBLE_KKT_POINT is the only solution_status that means converged.
+            //
+            //Returned as a plain int so that this header stays free of the Uno C API, which
+            //declares its constants as namespace-scope `const` and therefore cannot be included in
+            //more than one translation unit without the linker seeing them multiply defined.
+            int get_solution_status() const { return this->solution_status; }
+
+            //Diagnostics only. Success is decided from the solution status and EMTG's own
+            //feasibility metric, not from these norms.
+            double get_solution_primal_feasibility() const { return this->solution_primal_feasibility; }
+            double get_solution_stationarity() const { return this->solution_stationarity; }
+
             //---- Uno C API callbacks ----
-            //These are public because they are installed into Uno as plain function pointers and
-            //must be reachable from the call sites in Souffle_interface.cpp (including the free-standing
-            //SouffleApi function-pointer table). They are static and take the interface through
-            //user_data, so they are not part of the class's usable API.
+            //Public because they are installed into Uno as plain function pointers and must be
+            //reachable from Souffle_interface.cpp and the SouffleApi table.
             static uno_int objective_callback(uno_int number_variables, const double* x,
                 double* objective_value, void* user_data);
             static uno_int objective_gradient_callback(uno_int number_variables, const double* x,
@@ -76,9 +87,8 @@ namespace EMTG
 
         private:
             //---- evaluation ----
-            //Makes sure F (and G when needed) are valid at the supplied SCALED iterate.
-            //Turns Uno's separate f/g evaluations into at most one EMTG problem evaluation per
-            //distinct point, which matters because EMTG's transcription is the expensive part.
+            //Ensures F (and G when needed) are valid at the supplied SCALED iterate, caching so
+            //that Uno's separate f/g calls cost at most one EMTG evaluation per distinct point.
             void ensure_evaluated(const double* x_scaled, bool need_gradient);
 
             //Runs the EMTG problem at the given unscaled point; handles NLPMode::FilamentFinder.
@@ -90,6 +100,12 @@ namespace EMTG
             //Chaperone bookkeeping, mirroring SNOPT_interface's logic.
             void update_chaperone();
 
+            //SOUFFLE FIX (D9): bank the current cached point as an incumbent without calling
+            //check_feasibility (which would re-enter the problem evaluation from inside an Uno
+            //callback). Mirrors what SNOPT gets for free from its per-evaluation chaperone.
+            //Only active when SOUFFLE_TRIAL_INCUMBENTS=1.
+            void bank_candidate();
+
             //---- cached evaluation state ----
             std::vector<double> cached_x_scaled;   //last scaled point evaluated
             bool cache_valid = false;
@@ -98,6 +114,9 @@ namespace EMTG
 
             //---- solver state ----
             int inform = 99;                        //SNOPT-like status code
+            int solution_status = -1;               //Uno's convergence verdict; see the getter
+            double solution_primal_feasibility = 0.0;
+            double solution_stationarity = 0.0;
             bool goal_attained = false;             //set by the termination callback
             std::size_t uno_iterations = 0;
             double uno_cpu_time = 0.0;
@@ -111,6 +130,10 @@ namespace EMTG
             //(iGfun != 0). The Uno model's Jacobian is built from exactly these entries, in this
             //order, so the Jacobian callback can map Uno's compacted values back onto G.
             std::vector<std::size_t> constraint_jacobian_source;
+
+            //SOUFFLE FIX (D5, default OFF): per-row scaling of the model Uno sees, because the
+            //filtersqp preset does no scaling of its own. Each row is normalised by the largest of
+            std::vector<double> constraint_scale;
         };//end class Souffle_interface
     }//end namespace Solvers
 }//end namespace EMTG

@@ -39,7 +39,7 @@ class SolverOptionsPanel(wx.lib.scrolledpanel.ScrolledPanel):
         self.cmbInnerLoopSolver = wx.ComboBox(self, -1, choices = innerloopsolvertypes, style=wx.CB_READONLY)
 
         self.lblNLP_solver_type = wx.StaticText(self, -1, "NLP solver")
-        NLP_solver_types = ['SNOPT','WORHP']
+        NLP_solver_types = self._available_solver_labels()
         self.cmbNLP_solver_type = wx.ComboBox(self, -1, choices = NLP_solver_types, style=wx.CB_READONLY)
 
         self.lblNLP_solver_mode = wx.StaticText(self, -1, "NLP solver mode")
@@ -606,6 +606,31 @@ class SolverOptionsPanel(wx.lib.scrolledpanel.ScrolledPanel):
         e.Skip()
         self.missionoptions.run_inner_loop = self.cmbInnerLoopSolver.GetSelection()
         self.update()
+
+    def _available_solver_labels(self):
+        """Labels for the NLP solver dropdown.
+
+        Order matches the NLP_solver_type index EMTG writes to the .emtgopt file:
+        0 = Uno, 1 = Ipopt, 2 = SNOPT. A solver whose runtime is not present next to the
+        executable is shown with a marker rather than removed, so the list does not shift
+        under the reader and the index stays stable.
+        """
+        import os
+        here = os.path.dirname(os.path.abspath(__file__))
+        # The packaged layout puts the executable and its DLLs two levels up in bin/.
+        bin_dir = os.path.join(os.path.dirname(here), 'bin')
+
+        def present(name):
+            if not os.path.isdir(bin_dir):
+                return True          # running from a source tree: do not guess
+            return os.path.exists(os.path.join(bin_dir, name))
+
+        out = []
+        for label, dll in (('Uno', 'libuno.dll'),
+                           ('Ipopt', 'ipopt-3.dll'),
+                           ('SNOPT', 'snopt7.dll')):
+            out.append(label if present(dll) else label + ' (not in this build)')
+        return out
 
     def ChangeNLP_solver_type(self, e):
         e.Skip()

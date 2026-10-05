@@ -31,14 +31,19 @@ add_definitions(-DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE)
 add_definitions(-D_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING)
 
 # specify where the executable will be installed
+#
+# SOUFFLE: the destination is a cache variable because src/CMakeLists.txt has a POST_BUILD step
+# that copies the freshly built EMTGv9.exe there unconditionally. A build that must not replace
+# the shipped binary points this at a staging directory instead. Default is unchanged.
+set(SOUFFLE_BIN_DIR "${PROJECT_SOURCE_DIR}/bin" CACHE PATH "Where the built executables are installed")
 if(MSVC)
-	STRING(REGEX REPLACE "/" "\\\\" OUTPUTDESTINATION "${PROJECT_SOURCE_DIR}\\bin")
+	STRING(REGEX REPLACE "/" "\\\\" OUTPUTDESTINATION "${SOUFFLE_BIN_DIR}")
 else(MSVC)
-	set(OUTPUTDESTINATION ${PROJECT_SOURCE_DIR}/bin)
+	set(OUTPUTDESTINATION ${SOUFFLE_BIN_DIR})
 endif(MSVC)
-if(NOT IS_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
+if(NOT IS_DIRECTORY ${SOUFFLE_BIN_DIR})
 	file(MAKE_DIRECTORY ${OUTPUTDESTINATION})
-endif(NOT IS_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
+endif(NOT IS_DIRECTORY ${SOUFFLE_BIN_DIR})
 
 
 #compiler-time Define-level options  for EMTG
@@ -80,8 +85,8 @@ option(BUILD_PYHARDWARE "Build PyHardware" OFF)
 option(SOUFFLE_WITH_UNO "Compile the Uno solver interface" ON)
 set(SOUFFLE_UNO_ROOT "" CACHE PATH "Uno installation directory (containing bin/, deps/, include/uno/)")
 # Which NLP solver a freshly built binary uses when SOUFFLE_NLP_SOLVER is not set.
-set(SOUFFLE_DEFAULT_SOLVER "Uno" CACHE STRING "Default NLP solver: Uno or SNOPT")
-set_property(CACHE SOUFFLE_DEFAULT_SOLVER PROPERTY STRINGS Uno SNOPT)
+set(SOUFFLE_DEFAULT_SOLVER "Uno" CACHE STRING "Default NLP solver: Uno, SNOPT or IPOPT")
+set_property(CACHE SOUFFLE_DEFAULT_SOLVER PROPERTY STRINGS Uno SNOPT IPOPT)
 
 if (SOUFFLE_WITH_UNO)
 	if (SOUFFLE_UNO_ROOT STREQUAL "")
@@ -99,6 +104,53 @@ if (SOUFFLE_WITH_UNO)
 	message(STATUS "Uno solver enabled. Root: ${SOUFFLE_UNO_ROOT}  default solver: ${SOUFFLE_DEFAULT_SOLVER}")
 else()
 	message(STATUS "Uno solver DISABLED (SOUFFLE_WITH_UNO=OFF); the binary will use SNOPT only")
+endif()
+
+#---------------------------- Ipopt Items -----------------------------------
+# Ipopt is the third solver option and it is NOT a drop-in replacement for the Uno plumbing:
+# unlike Uno (a MinGW shared library that MSVC cannot link, hence the run-time LoadLibraryEx
+# in SouffleApi.cpp), the Ipopt 3.14.19 build here ships a COFF import library, so it is linked
+# directly with cl.exe against src/InnerLoop/Ipopt_interface.cpp.
+#
+# The defaults below point at the conda environment that provides the MSVC-compatible Ipopt
+# build on the reference machine; override IPOPT_INCLUDE_DIR / IPOPT_LIBRARY / IPOPT_BIN_DIR
+# for any other installation.
+option(SOUFFLE_WITH_IPOPT "Compile the Ipopt solver interface (requires an Ipopt 3.14 installation)" OFF)
+set(IPOPT_INCLUDE_DIR "" CACHE PATH "Ipopt include directory (containing coin/IpoptConfig.h)")
+set(IPOPT_LIBRARY "" CACHE FILEPATH "Ipopt import library (ipopt.lib)")
+set(IPOPT_BIN_DIR "" CACHE PATH "Directory holding the Ipopt DLL and its runtime dependencies (MUMPS/BLAS/LAPACK)")
+
+if (SOUFFLE_WITH_IPOPT)
+	if (IPOPT_INCLUDE_DIR STREQUAL "" OR IPOPT_LIBRARY STREQUAL "")
+	message(FATAL_ERROR "Ipopt is enabled but not located. Set -DIPOPT_INCLUDE_DIR=<.../Library/include> -DIPOPT_LIBRARY=<.../Library/lib/ipopt.lib> -DIPOPT_BIN_DIR=<.../Library/bin>, or configure with -DSOUFFLE_WITH_IPOPT=OFF.")
+endif()
+if (NOT EXISTS "${IPOPT_INCLUDE_DIR}/coin/IpoptConfig.h")
+		message(FATAL_ERROR "Ipopt headers not found at ${IPOPT_INCLUDE_DIR}/coin (set IPOPT_INCLUDE_DIR, or configure with -DSOUFFLE_WITH_IPOPT=OFF)")
+	endif()
+	if (NOT EXISTS "${IPOPT_LIBRARY}")
+		message(FATAL_ERROR "Ipopt import library not found at ${IPOPT_LIBRARY} (set IPOPT_LIBRARY, or configure with -DSOUFFLE_WITH_IPOPT=OFF)")
+	endif()
+	if (NOT EXISTS "${IPOPT_BIN_DIR}/ipopt-3.dll")
+		message(WARNING "ipopt-3.dll not found in ${IPOPT_BIN_DIR} - the binary will still build and link, but NLP solves will fail at run time unless IPOPT_BIN_DIR points at a valid Ipopt install")
+	endif()
+
+	# IpoptConfig.h already declares IPOPTLIB_EXPORT as __declspec(dllimport), so no extra
+	# preprocessor scaffolding is needed for the DLL import.
+	add_definitions(-DSOUFFLE_WITH_IPOPT)
+	include_directories("${IPOPT_INCLUDE_DIR}")
+	set(EMTG_LIBRARIES ${EMTG_LIBRARIES} "${IPOPT_LIBRARY}")
+
+	# Only supply the compiled-in default solver name when nothing else does: the Uno block
+	# above owns that define whenever Uno is compiled, and NLPoptions.cpp falls back to "SNOPT"
+	# when no define exists at all, which would be wrong in an Ipopt-only binary.
+	if (NOT SOUFFLE_WITH_SNOPT AND NOT SOUFFLE_WITH_UNO)
+		add_definitions(-DSOUFFLE_DEFAULT_SOLVER_NAME="IPOPT")
+	endif()
+
+	message(STATUS "Ipopt solver enabled. Include: ${IPOPT_INCLUDE_DIR}  library: ${IPOPT_LIBRARY}")
+	message(STATUS "Ipopt runtime DLLs are NOT copied into bin/: put ${IPOPT_BIN_DIR} on PATH (or copy ipopt-3.dll and its MUMPS/BLAS/LAPACK dependencies next to EMTGv9.exe) before running")
+else()
+	message(STATUS "Ipopt solver DISABLED (SOUFFLE_WITH_IPOPT=OFF)")
 endif()
 
 # We want Background mode to default to ON for NavLab runs

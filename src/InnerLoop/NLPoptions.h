@@ -67,11 +67,12 @@ namespace EMTG
             std::string get_specs_file_path() { return this->specs_file_path; }
             std::string get_output_file_path() { return this->output_file_path; }
 
-            //SOUFFLE: which NLP solver to build. "SNOPT" (default) or "Uno".
+            //SOUFFLE: which NLP solver to use. "SNOPT", "Uno" or "IPOPT"; an empty value means
+            //"whichever solver the binary was built around" (see NLP_solver_factory.cpp).
             //Read from the SOUFFLE_NLP_SOLVER environment variable by the constructor; see
-            //NLPoptions.cpp. Keeping the default as SNOPT means a freshly built SOUFFLE behaves
-            //exactly like the original EMTG until Uno is explicitly requested, which also makes
-            //the two solvers directly comparable from a single binary.
+            //NLPoptions.cpp. Keeping the compiled-in default as SNOPT means a freshly built
+            //Souffle behaves exactly like the original EMTG until another solver is explicitly
+            //requested, which also makes the solvers directly comparable from a single binary.
             std::string get_solver_name() const { return this->solver_name; }
 
             void set_SolverMode(const NLPMode& SolverMode) { this->SolverMode = SolverMode; }
@@ -109,7 +110,7 @@ namespace EMTG
             double objective_goal;
             std::string specs_file_path;
             std::string output_file_path;            
-            std::string solver_name;  //SOUFFLE: "SNOPT" or "Uno"
+            std::string solver_name;  //SOUFFLE: "SNOPT", "Uno" or "IPOPT"
         };//end class NLPOptions
     }//end namespace Solvers
 }//end namespace EMTG

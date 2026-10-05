@@ -80,9 +80,17 @@ namespace EMTG
             //Restrict DLL resolution to the application directory plus directories we add
             //explicitly. This prevents a stale libuno/dependency on PATH from being picked up,
             //which previously produced a silent 0xC0000139 (STATUS_ENTRYPOINT_NOT_FOUND) exit.
-            ::SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
-            ::AddDllDirectory(to_wide(bin_dir).c_str());
-            ::AddDllDirectory(to_wide(deps_dir).c_str());
+            //
+            //EXPERIMENT (SOUFFLE_UNO_NO_LOCKDOWN=1): skip both calls, so the process DLL search
+            //order is left exactly as it was. SetDefaultDllDirectories is process-global and
+            //permanent, so it also changes how *later* libraries resolve their own dependencies.
+            const char* const no_lockdown = std::getenv("SOUFFLE_UNO_NO_LOCKDOWN");
+            if (no_lockdown == nullptr || *no_lockdown != '1')
+            {
+                ::SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
+                ::AddDllDirectory(to_wide(bin_dir).c_str());
+                ::AddDllDirectory(to_wide(deps_dir).c_str());
+            }
 
             HMODULE module = ::LoadLibraryExW(to_wide(dll_path).c_str(), nullptr,
                 LOAD_LIBRARY_SEARCH_DEFAULT_DIRS | LOAD_LIBRARY_SEARCH_USER_DIRS);

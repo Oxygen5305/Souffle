@@ -24,8 +24,9 @@ namespace EMTG
     namespace Solvers
     {
         //Builds the solver named by myOptions.get_solver_name() (case insensitive):
-        //"SNOPT" or "UNO". Throws std::runtime_error for an unknown name or one that this
-        //build does not contain.
+        //"SNOPT", "UNO" or "IPOPT". An empty name means "whichever solver this binary was
+        //built around", with precedence SNOPT > Uno > Ipopt. Throws std::runtime_error for an
+        //unknown name or one that this build does not contain.
         std::unique_ptr<NLP_interface> create_NLP_solver(EMTG::problem* myProblem,
             const NLPoptions& myOptions);
     }//end namespace Solvers

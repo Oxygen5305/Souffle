@@ -11,15 +11,20 @@
 
 #include "problem.h"
 
-// SOUFFLE: SNOPT is optional. With SOUFFLE_WITH_SNOPT undefined the SNOPT interface is
-// not compiled and its header is not required, so the build needs no SNOPT installation
-// and the resulting executable does not import snopt7.dll.
+// SOUFFLE: each solver is optional. A header is included only when its interface is compiled,
+// so a build without SNOPT needs no SNOPT installation and does not import snopt7.dll.
 #ifdef SOUFFLE_WITH_SNOPT
 #include "SNOPT_interface.h"
 #endif
 
 #ifdef SOUFFLE_WITH_UNO
 #include "Souffle_interface.h"
+#endif
+
+// Ipopt is linked in directly rather than loaded at run time: its import library is a COFF
+// archive that cl.exe can link.
+#ifdef SOUFFLE_WITH_IPOPT
+#include "Ipopt_interface.h"
 #endif
 
 namespace EMTG
@@ -42,29 +47,29 @@ namespace EMTG
         {
             const std::string name = to_lower(myOptions.get_solver_name());
 
-            if (name.empty() || name == "snopt")
+            //An empty name means "use whichever solver this binary was built around".
+            //Precedence is SNOPT, then Uno, then Ipopt, so that adding Ipopt to a build cannot
+            //change what an existing binary does when SOUFFLE_NLP_SOLVER is unset.
+            if (name.empty())
+            {
+#if defined(SOUFFLE_WITH_SNOPT)
+                return std::unique_ptr<NLP_interface>(new SNOPT_interface(myProblem, myOptions));
+#elif defined(SOUFFLE_WITH_UNO)
+                return std::unique_ptr<NLP_interface>(new Souffle_interface(myProblem, myOptions));
+#elif defined(SOUFFLE_WITH_IPOPT)
+                return std::unique_ptr<NLP_interface>(new Ipopt_interface(myProblem, myOptions));
+#else
+                throw std::runtime_error("SOUFFLE: this build has no NLP solver compiled in.");
+#endif
+            }
+
+            if (name == "snopt")
             {
 #ifdef SOUFFLE_WITH_SNOPT
-                //SNOPT build: identical to EMTG's original behaviour.
                 return std::unique_ptr<NLP_interface>(new SNOPT_interface(myProblem, myOptions));
 #else
-                //Default SOUFFLE build: SNOPT is not compiled in. An empty name means
-                //"use the default solver", so fall through to Uno; an explicit "snopt"
-                //request is an error.
-#ifdef SOUFFLE_WITH_UNO
-                if (name.empty())
-                {
-                    return std::unique_ptr<NLP_interface>(new Souffle_interface(myProblem, myOptions));
-                }
-                throw std::runtime_error(
-                    "SOUFFLE: the SNOPT solver was requested but this build was compiled "
-                    "without SNOPT (SOUFFLE_WITH_SNOPT=OFF). Use SOUFFLE_NLP_SOLVER=Uno, "
-                    "or rebuild with -DSOUFFLE_WITH_SNOPT=ON and a SNOPT installation.");
-#else
-                throw std::runtime_error(
-                    "SOUFFLE: no NLP solver is available. This build has neither SNOPT nor "
-                    "Uno compiled in; rebuild with -DSOUFFLE_WITH_UNO=ON.");
-#endif
+                throw std::runtime_error("SOUFFLE: no SNOPT in this build "
+                    "(rebuild with -DSOUFFLE_WITH_SNOPT=ON).");
 #endif
             }
 
@@ -73,15 +78,32 @@ namespace EMTG
 #ifdef SOUFFLE_WITH_UNO
                 return std::unique_ptr<NLP_interface>(new Souffle_interface(myProblem, myOptions));
 #else
-                throw std::runtime_error(
-                    "SOUFFLE: the Uno solver was requested but this build was compiled without it. "
-                    "Rebuild with SOUFFLE_WITH_UNO defined (see src/InnerLoop/CMakeLists.txt).");
+                throw std::runtime_error("SOUFFLE: no Uno in this build "
+                    "(rebuild with -DSOUFFLE_WITH_UNO=ON).");
 #endif
             }
 
-            throw std::runtime_error(
-                "SOUFFLE: unknown NLP solver '" + myOptions.get_solver_name() +
-                "'. Valid choices are 'SNOPT' and 'Uno' (set via the SOUFFLE_NLP_SOLVER environment variable).");
+            if (name == "ipopt")
+            {
+#ifdef SOUFFLE_WITH_IPOPT
+                return std::unique_ptr<NLP_interface>(new Ipopt_interface(myProblem, myOptions));
+#else
+                throw std::runtime_error("SOUFFLE: no Ipopt in this build "
+                    "(rebuild with -DSOUFFLE_WITH_IPOPT=ON).");
+#endif
+            }
+
+            //HYBRID (Uno and Ipopt inside one process) was retired: their mingw runtimes carry
+            //the same DLL names, and Windows resolves by name, so the second one to load dies.
+            //Union search now runs the two solvers as separate processes; see united/united.py.
+            if (name == "hybrid")
+            {
+                throw std::runtime_error("SOUFFLE: HYBRID was retired -- Uno and Ipopt cannot "
+                    "share a process. Use united/united.py for union search.");
+            }
+
+            throw std::runtime_error("SOUFFLE: unknown NLP solver '" +
+                myOptions.get_solver_name() + "' (SOUFFLE_NLP_SOLVER accepts SNOPT, Uno, Ipopt).");
         }
     }//end namespace Solvers
 }//end namespace EMTG

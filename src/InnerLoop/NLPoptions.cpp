@@ -24,6 +24,21 @@ namespace EMTG
 {
     namespace Solvers
     {
+        namespace
+        {
+            //Maps the missionoptions NLP_solver_type index onto a solver name. The GUI's
+            //dropdown writes this field, so it is what "NLP solver" in the interface means.
+            const char* solver_name_for_type(int type)
+            {
+                switch (type)
+                {
+                case 1:  return "IPOPT";
+                case 2:  return "SNOPT";
+                default: return "Uno";
+                }
+            }
+        }//end anonymous namespace
+
         NLPoptions::NLPoptions() :
             SolverMode(NLPMode::Optimize),
             enable_auto_scale(false),
@@ -74,6 +89,11 @@ namespace EMTG
             this->feasibility_tolerance = options.snopt_feasibility_tolerance;
             this->optimality_tolerance = options.snopt_optimality_tolerance;
             this->objective_goal = options.NLP_objective_goal;
+
+            //The case file's NLP solver selection. SOUFFLE_NLP_SOLVER still wins when set, so
+            //the launcher and the command line can override whatever the GUI wrote.
+            if (std::getenv("SOUFFLE_NLP_SOLVER") == nullptr)
+                this->solver_name = solver_name_for_type(options.NLP_solver_type);
         }
 #endif
     }//end namespace Solvers

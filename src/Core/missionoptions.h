@@ -85,7 +85,7 @@ namespace EMTG
         std::vector<double> DLA_bounds;//DLA in degrees
         std::vector<double> RLA_bounds;//RLA in degrees
         PhaseType mission_type;//mission type. Choices are 0 - MGALTS, 1 - FBLTS, 2 - MGALT, 3 - FBLT, 4 - PSBI, 5 - PSFB, 6 - MGAnDSMs, 7 - CoastPhase, 8 - SundmanCoastPhase, 9 - variable phase type, 10 - ProbeEntryPhase, 11 - ControlLawThrustPhase
-        int NLP_solver_type;//NLP solver type. Choices are 0 - SNOPT, 1 - WORHP
+        int NLP_solver_type;//NLP solver type. Choices are 0 - Uno, 1 - Ipopt, 2 - SNOPT
         NLPMode NLP_solver_mode;//NLP solver mode. Choices are 0 -  find feasible point only, 1 - find optimal solution, 2 - satisfy equality constraints
         bool quiet_NLP;//Quiet NLP solver?
         bool ACE_feasible_point_finder;//Enable ACE feasible point finder?
