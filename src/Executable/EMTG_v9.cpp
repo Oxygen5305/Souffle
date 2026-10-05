@@ -768,7 +768,7 @@ int main(int argc, char* argv[])
             unload_c((options.universe_folder + "ephemeris_files/" + options.SPICE_reference_frame_kernel).c_str());
         }
 
-        std::cout << "EMTG run complete." << std::endl;
+        std::cout << "SOUFFLE run complete." << std::endl;
 
     #ifndef BACKGROUND_MODE //macro overrides if statement
         if (!options.background_mode)
@@ -780,7 +780,7 @@ int main(int argc, char* argv[])
     }
     catch (std::exception &exception)
     {
-        std::cout << "\nEMTG failed with error:" << std::endl;
+        std::cout << "\nSOUFFLE failed with error:" << std::endl;
         std::cout << exception.what() << std::endl;
         std::cout << "Submit this error message to the EMTG development team, along with your .emtgopt, .emtg_universe file(s), your hardware model files, any relevant ephemeris files, and which branch you are using. This information will allow us to properly help you." << std::endl;
 #ifndef BACKGROUND_MODE //macro overrides if statement

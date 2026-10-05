@@ -210,7 +210,7 @@ namespace EMTG {
             std::ofstream outputfile("force_model.txt", ios::trunc);
             outputfile.precision(15);
             outputfile << scientific;
-            outputfile << "EMTG model debug file" << endl;
+            outputfile << "SOUFFLE model debug file" << endl;
             outputfile << endl;
             outputfile << "Epoch (seconds since J2000): " << epoch << endl;
             outputfile << "Epoch (MJD): " << epoch / 86400.0 << endl;

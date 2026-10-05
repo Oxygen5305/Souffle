@@ -2388,7 +2388,7 @@ namespace EMTG
     
         if (this->departure_class != 0 || writeAll || this->print_this_journey_options_no_matter_what)
         {
-            optionsFileStream << "#journey departure boundary class\n#0: Ephemeris-pegged (default EMTG)\n#1: Free point\n#2: Ephemeris-referenced\n#3: Periapse" << std::endl;
+            optionsFileStream << "#journey departure boundary class\n#0: Ephemeris-pegged (default SOUFFLE)\n#1: Free point\n#2: Ephemeris-referenced\n#3: Periapse" << std::endl;
             optionsFileStream << "departure_class " << this->departure_class << std::endl;
         }
     
@@ -2481,7 +2481,7 @@ namespace EMTG
     
         if (this->arrival_class != 0 || writeAll || this->print_this_journey_options_no_matter_what)
         {
-            optionsFileStream << "#journey arrival boundary class\n#0: Ephemeris-pegged (default EMTG)\n#1: Free point\n#2: Ephemeris-referenced\n#3: Periapse" << std::endl;
+            optionsFileStream << "#journey arrival boundary class\n#0: Ephemeris-pegged (default SOUFFLE)\n#1: Free point\n#2: Ephemeris-referenced\n#3: Periapse" << std::endl;
             optionsFileStream << "arrival_class " << this->arrival_class << std::endl;
         }
     

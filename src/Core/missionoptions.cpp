@@ -178,7 +178,7 @@ namespace EMTG
         this->output_dormant_journeys = (bool) 0;
         this->post_mission_wait_time = 0;
         this->override_working_directory = (bool) 0;
-        this->forced_working_directory = "..//EMTG_v9_Results";
+        this->forced_working_directory = "..//SOUFFLE_Results";
         this->override_mission_subfolder = (bool) 0;
         this->forced_mission_subfolder = "mission_subfolder";
         this->short_output_file_names = (bool) 1;
@@ -2386,7 +2386,7 @@ namespace EMTG
     
         if (this->engine_type != 5 || writeAll)
         {
-            optionsFileStream << "#low-thrust engine type\n#0: fixed thrust/Isp\n#1: constant Isp, efficiency, EMTG computes input power\n#2: choice of power model, constant efficiency, EMTG chooses Isp\n#3: choice of power model, constant efficiency and Isp\n#4: continuously-varying specific impulse\n#5: custom thrust and mass flow rate polynomial\n#6: AEPS_High_Thrust_and_Isp\n#7: BIT3_High_Thrust_and_Isp\n#8: Halo12_High_Thrust\n#9: Halo12_High_Isp\n#10: NEXTC_High_Thrust\n#11: NEXTC_High_Isp\n#12: PPS5000_High_Thrust\n#13: PPS5000_High_Isp\n#14: 2D Throttle table\n#15: 1D Throttle table high-thrust\n#16: 1D Throttle table high-Isp\n#17: 2D polynomial fit" << std::endl;
+            optionsFileStream << "#low-thrust engine type\n#0: fixed thrust/Isp\n#1: constant Isp, efficiency, SOUFFLE computes input power\n#2: choice of power model, constant efficiency, SOUFFLE chooses Isp\n#3: choice of power model, constant efficiency and Isp\n#4: continuously-varying specific impulse\n#5: custom thrust and mass flow rate polynomial\n#6: AEPS_High_Thrust_and_Isp\n#7: BIT3_High_Thrust_and_Isp\n#8: Halo12_High_Thrust\n#9: Halo12_High_Isp\n#10: NEXTC_High_Thrust\n#11: NEXTC_High_Isp\n#12: PPS5000_High_Thrust\n#13: PPS5000_High_Isp\n#14: 2D Throttle table\n#15: 1D Throttle table high-thrust\n#16: 1D Throttle table high-Isp\n#17: 2D polynomial fit" << std::endl;
             optionsFileStream << "engine_type " << this->engine_type << std::endl;
         }
     
@@ -2826,7 +2826,7 @@ namespace EMTG
             optionsFileStream << "override_working_directory " << this->override_working_directory << std::endl;
         }
     
-        if (this->forced_working_directory != "..//EMTG_v9_Results" || writeAll)
+        if (this->forced_working_directory != "..//SOUFFLE_Results" || writeAll)
         {
             optionsFileStream << "#User-defined working directory" << std::endl;
             optionsFileStream << "forced_working_directory " << this->forced_working_directory << std::endl;
@@ -2990,7 +2990,7 @@ namespace EMTG
     
         if (this->checkFeasibilityTolInMBHToSkipNLP != 0 || writeAll)
         {
-            optionsFileStream << "#Should EMTG check the feasibility tolerance of the initial guess when running in MBH mode and skip the NLP solve for that iteration if the feasibility tolerance is greater than feasibilityTolInMBHToSkipNLP?" << std::endl;
+            optionsFileStream << "#Should SOUFFLE check the feasibility tolerance of the initial guess when running in MBH mode and skip the NLP solve for that iteration if the feasibility tolerance is greater than feasibilityTolInMBHToSkipNLP?" << std::endl;
             optionsFileStream << "checkFeasibilityTolInMBHToSkipNLP " << this->checkFeasibilityTolInMBHToSkipNLP << std::endl;
         }
     
