@@ -30,7 +30,7 @@ Windows 按名字解析 DLL，先加载的一方占住名字后，另一方的�
 
 ```bat
 REM 先设好 Uno 的运行时位置，否则 Uno 会以 126 退出（找不到 libuno.dll）
-set SOUFFLE_UNO_ROOT=G:\Py\DeepSeekHarness\Uno
+set SOUFFLE_UNO_ROOT=<Uno 安装目录>
 
 REM 单个算例
 python united\united.py --case case.emtgopt --out run\ --mode both
@@ -39,8 +39,8 @@ REM 一批算例：--dir 下每个子目录里的 case.emtgopt 各算一个任�
 python united\united.py --dir cases\ --jobs 8 --mode both
 ```
 
-Ipopt 的 DLL 位置默认取 `G:\miniforge3\envs\pykep-env\Library\bin`，
-可用 `SOUFFLE_IPOPT_LIB` 覆盖。
+Ipopt 的 DLL 位置由 `SOUFFLE_IPOPT_LIB` 指定（发行包里就是 `bin\`，因为 MKL 必须与
+`libblas.dll` 同目录）；未设置时会报错退出。
 
 ## 时间设置
 
