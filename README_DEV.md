@@ -33,8 +33,8 @@ build.bat [uno|ipopt|all] [build|configure|clean]
 
 | 目标 | 构建树 | 产物 | 说明 |
 |---|---|---|---|
-| `uno` | `build_cheese\` | `bin\EMTGv9.exe` | 纯 Uno |
-| `ipopt` | `build_ipopt\` | `bin\EMTGv9_ipopt.exe` | Uno + Ipopt |
+| `uno` | `build_cheese\` | `bin\SOUFFLE.exe` | 纯 Uno |
+| `ipopt` | `build_ipopt\` | `bin\SOUFFLE.exe` | Uno + Ipopt（同一个二进制，用 SOUFFLE_NLP_SOLVER 切换） |
 
 两个必须记住的坑（都写进了 `build.bat` 的注释）：
 
