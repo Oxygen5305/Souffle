@@ -105,7 +105,7 @@ class Archive(object):
             inputfile = open(input_file_name, "r")
             self.success = 1
         else:
-            print("Unable to open", input_file_name, "EMTG Error")
+            print("Unable to open", input_file_name, "SOUFFLE Error")
             self.success = 0
             return
 

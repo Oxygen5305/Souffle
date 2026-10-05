@@ -662,7 +662,7 @@ class Mission(object):
         if PlotOptions.PlotR or PlotOptions.PlotV or PlotOptions.PlotThrust or PlotOptions.PlotIsp or PlotOptions.PlotMdot or PlotOptions.PlotEfficiency or PlotOptions.PlotThrottle or PlotOptions.PlotPower or PlotOptions.PlotGamma or PlotOptions.PlotDelta or PlotOptions.PlotVelocityThrustAngle or PlotOptions.PlotArray_Thrust_Angle or PlotOptions.PlotMass or PlotOptions.PlotNumberOfEngines or PlotOptions.PlotActivePower or PlotOptions.PlotWasteHeat or PlotOptions.PlotEarthDistance or PlotOptions.PlotSunSpacecraftEarthAngle or PlotOptions.PlotSpacecraftViewingAngle or PlotOptions.PlotThrottleLevel:
             
             reportfile = open(reportfilename, 'w')
-            reportfile.write('#EMTG systems report file\n')
+            reportfile.write('#SOUFFLE systems report file\n')
             reportfile.write('\n')
 
             

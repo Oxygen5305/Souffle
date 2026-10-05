@@ -366,10 +366,10 @@ class PEATSAmenu(object):
             "1",
             False,
        "# Where is EMTG located? The emtgv9 executable should be in this directory and \n\
-        # the PyEMTG files should be located in: emtg_root_directory + '/PyEMTG'.\n\
+        # the PySOUFFLE files should be located in: emtg_root_directory + '/PyEMTG'.\n\
         # Enter a string.")
 
-        self.executable_name = 'EMTGv9'
+        self.executable_name = 'SOUFFLE'
         self.init_var(
             "executable_name",
             "1",

@@ -48,7 +48,7 @@ class PyEMTG_interface(wx.Frame):
         if os.path.isfile(input_file_name):
             inputfile = open(input_file_name, "r")
         else:
-            print("Unable to open", input_file_name, "EMTG Error")
+            print("Unable to open", input_file_name, "SOUFFLE Error")
             return
 
         for line in inputfile:
@@ -189,7 +189,7 @@ class PyEMTG_interface(wx.Frame):
         sizer.Add(self.lblWelcome, 1, flag = wx.CENTER)
         self.SetSizer(sizer)
 
-        self.SetTitle("EMTG Python Interface")
+        self.SetTitle("SOUFFLE Python Interface")
 
         self.Show()
 
@@ -312,7 +312,7 @@ class PyEMTG_interface(wx.Frame):
         
     
     def OpenFile(self, e):
-        dlg = wx.FileDialog(self, message="Open an EMTG file", defaultDir=self.dirname, defaultFile="",
+        dlg = wx.FileDialog(self, message="Open a SOUFFLE file", defaultDir=self.dirname, defaultFile="",
                             wildcard="*.emtgopt;*.emtg;*.NSGAII", style=wx.FD_OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             self.filename = dlg.GetFilename()
@@ -387,7 +387,7 @@ class PyEMTG_interface(wx.Frame):
                     self.fileMenu.Enable(wx.ID_SAVE, False)
 
             else:
-                errordlg = wx.MessageDialog(self, "Unrecognized file type.", "EMTG Error", wx.OK)
+                errordlg = wx.MessageDialog(self, "Unrecognized file type.", "SOUFFLE Error", wx.OK)
                 errordlg.ShowModal()
                 errordlg.Destroy()
 

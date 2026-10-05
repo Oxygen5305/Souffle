@@ -161,8 +161,8 @@ def main():
     ap.add_argument('--mode', choices=('parallel', 'both'), default='both',
                     help='parallel=Uno ‖ Ipopt 取优；both=再加一次热启动后三者取优')
     ap.add_argument('--jobs', type=int, default=4, help='并发任务数')
-    ap.add_argument('--uno-exe', default=os.path.join(BIN_DIR, 'EMTGv9.exe'))
-    ap.add_argument('--ipopt-exe', default=os.path.join(BIN_DIR, 'EMTGv9_ipopt.exe'))
+    ap.add_argument('--uno-exe', default=os.path.join(BIN_DIR, 'SOUFFLE.exe'))
+    ap.add_argument('--ipopt-exe', default=os.path.join(BIN_DIR, 'SOUFFLE_ipopt.exe'))
     ap.add_argument('--limit', type=int, default=0)
     args = ap.parse_args()
 

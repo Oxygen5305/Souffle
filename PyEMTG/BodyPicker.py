@@ -405,7 +405,7 @@ class DistanceConstraintBodyPicker(wx.Dialog):
         #first check to make sure that the body being added is not already in the constraints list
         for constraint in self.list_of_constraints:
             if constraint[0] == self.ActiveBody - 1:
-                errordlg = wx.MessageDialog(self, "Cannot add two distance constraints to the same body in the same journey.", "EMTG Error", wx.OK)
+                errordlg = wx.MessageDialog(self, "Cannot add two distance constraints to the same body in the same journey.", "SOUFFLE Error", wx.OK)
                 errordlg.ShowModal()
                 errordlg.Destroy()
                 return

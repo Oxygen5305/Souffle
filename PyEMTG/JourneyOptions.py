@@ -115,7 +115,7 @@ class JourneyOptions(object):
         self.maximum_initial_mass = 0
         """If initial mass for this journey is constrained, enter the constraint value here."""
         self.departure_class = 0
-        """journey departure boundary class. Choices are 0 - Ephemeris-pegged (default EMTG), 1 - Free point, 2 - Ephemeris-referenced, 3 - Periapse."""
+        """journey departure boundary class. Choices are 0 - Ephemeris-pegged (default SOUFFLE), 1 - Free point, 2 - Ephemeris-referenced, 3 - Periapse."""
         self.departure_ellipsoid_axes = [1e-8,1e-8,1e-8]
         """journey departure ellipsoid axes (3)"""
         self.arrival_type = 3
@@ -141,7 +141,7 @@ class JourneyOptions(object):
         self.forced_initial_coast = 0
         """Journey forced initial coast (in days)"""
         self.arrival_class = 0
-        """journey arrival boundary class. Choices are 0 - Ephemeris-pegged (default EMTG), 1 - Free point, 2 - Ephemeris-referenced, 3 - Periapse."""
+        """journey arrival boundary class. Choices are 0 - Ephemeris-pegged (default SOUFFLE), 1 - Free point, 2 - Ephemeris-referenced, 3 - Periapse."""
         self.arrival_ellipsoid_axes = [1e-8,1e-8,1e-8]
         """journey arrival ellipsoid axes (3)"""
         self.zero_turn_flyby_distance = 1000
@@ -984,7 +984,7 @@ class JourneyOptions(object):
                 optionsFile.write("maximum_initial_mass " + str(self.maximum_initial_mass) + "\n")
     
             if (self.departure_class != 0 or writeAll or self.print_this_journey_options_no_matter_what):
-                optionsFile.write("#journey departure boundary class\n#0: Ephemeris-pegged (default EMTG)\n#1: Free point\n#2: Ephemeris-referenced\n#3: Periapse\n")
+                optionsFile.write("#journey departure boundary class\n#0: Ephemeris-pegged (default SOUFFLE)\n#1: Free point\n#2: Ephemeris-referenced\n#3: Periapse\n")
                 optionsFile.write("departure_class " + str(self.departure_class) + "\n")
     
             if (self.departure_ellipsoid_axes != [1e-8,1e-8,1e-8] or writeAll or self.print_this_journey_options_no_matter_what):
@@ -1051,7 +1051,7 @@ class JourneyOptions(object):
                 optionsFile.write("forced_initial_coast " + str(self.forced_initial_coast) + "\n")
     
             if (self.arrival_class != 0 or writeAll or self.print_this_journey_options_no_matter_what):
-                optionsFile.write("#journey arrival boundary class\n#0: Ephemeris-pegged (default EMTG)\n#1: Free point\n#2: Ephemeris-referenced\n#3: Periapse\n")
+                optionsFile.write("#journey arrival boundary class\n#0: Ephemeris-pegged (default SOUFFLE)\n#1: Free point\n#2: Ephemeris-referenced\n#3: Periapse\n")
                 optionsFile.write("arrival_class " + str(self.arrival_class) + "\n")
     
             if (self.arrival_ellipsoid_axes != [1e-8,1e-8,1e-8] or writeAll or self.print_this_journey_options_no_matter_what):

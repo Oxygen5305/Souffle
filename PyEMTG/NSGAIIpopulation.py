@@ -193,7 +193,7 @@ class NSGAII_outerloop_population(object):
             inputfile = open(population_file_name, "r")
             self.success = 1
         else:
-            print("Unable to open", population_file_name, "EMTG Error")
+            print("Unable to open", population_file_name, "SOUFFLE Error")
             self.success = 0
             return
 

@@ -110,6 +110,10 @@ target_link_libraries(emtg ${EMTG_LIBRARIES})
 
 # create the EMTG executable
 add_executable(EMTGv9 ${EXECUTABLE_FILES})
+
+# Shipped as SOUFFLE.exe. The target keeps its name because the POST_BUILD steps and
+# the install rule refer to it.
+set_target_properties(EMTGv9 PROPERTIES OUTPUT_NAME SOUFFLE)
 target_include_directories(EMTGv9 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/OuterLoop)
 target_link_libraries(EMTGv9 emtg ${EMTG_LIBRARIES})
 
@@ -235,7 +239,7 @@ if(MSVC)
     endif()
     
     # copy the executable
-    add_custom_command(TARGET EMTGv9 POST_BUILD COMMAND copy /Y "${CMAKE_CFG_INTDIR}\\EMTGv9.exe" ${OUTPUTDESTINATION} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})   
+    add_custom_command(TARGET EMTGv9 POST_BUILD COMMAND copy /Y "${CMAKE_CFG_INTDIR}\\SOUFFLE.exe" ${OUTPUTDESTINATION} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})   
     
     if (BUILD_PROPULATOR)
         add_custom_command(TARGET PropulatorDriver POST_BUILD COMMAND copy /Y "${CMAKE_CFG_INTDIR}\\PropulatorDriver.exe" ${OUTPUTDESTINATION} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})   

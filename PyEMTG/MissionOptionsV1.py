@@ -247,7 +247,7 @@ class MissionOptions(object):
         self.output_file_frame = 1
         self.post_mission_wait_time = 0.0
         self.override_working_directory = 0;
-        self.forced_working_directory = "..//EMTG_v9_Results"
+        self.forced_working_directory = "..//SOUFFLE_Results"
         self.override_mission_subfolder = 0;
         self.forced_mission_subfolder = "mission_subfolder"
         self.short_output_file_names = 0
@@ -300,7 +300,7 @@ class MissionOptions(object):
             inputfile = open(input_file_name, "r")
             self.success = 1
         else:
-            print("Unable to open", input_file_name, "EMTG Error")
+            print("Unable to open", input_file_name, "SOUFFLE Error")
             self.success = 0
             return
         
@@ -1345,11 +1345,11 @@ class MissionOptions(object):
         #first open the file for writing
         outputfile = open(output_file_name, "w")
         
-        outputfile.write("##Options file for EMTG_v9\n")
+        outputfile.write("##Options file for SOUFFLE\n")
         outputfile.write("\n")
             
         outputfile.write("##problem type\n")
-        outputfile.write("#0: standard EMTG mission\n")
+        outputfile.write("#0: standard SOUFFLE mission\n")
         outputfile.write("problem_type " + str(self.problem_type) + "\n")
         outputfile.write("\n")
 
@@ -1534,8 +1534,8 @@ class MissionOptions(object):
         outputfile.write("Thrust " + str(self.Thrust) + "\n")
         outputfile.write("#low-thrust engine type\n")
         outputfile.write("#0: fixed thrust/Isp\n")
-        outputfile.write("#1: constant Isp, efficiency, EMTG computes input power\n")
-        outputfile.write("#2: choice of power model, constant efficiency, EMTG chooses Isp\n")
+        outputfile.write("#1: constant Isp, efficiency, SOUFFLE computes input power\n")
+        outputfile.write("#2: choice of power model, constant efficiency, SOUFFLE chooses Isp\n")
         outputfile.write("#3: choice of power model, constant efficiency and Isp\n")
         outputfile.write("#4: continuously-varying specific impulse\n")
         outputfile.write("#5: custom thrust and mass flow rate polynomial\n")
@@ -1894,7 +1894,7 @@ class MissionOptions(object):
             outputfile.write(" " + str(self.Journeys[j].journey_departure_type))
         outputfile.write("\n")
         outputfile.write("#journey departure boundary class (one value per journey)\n")
-        outputfile.write("#0: Ephemeris-pegged (default EMTG)\n")
+        outputfile.write("#0: Ephemeris-pegged (default SOUFFLE)\n")
         outputfile.write("#1: Free point\n")
         outputfile.write("#2: Ephemeris-referenced\n")
         outputfile.write("#3: Periapse\n")
@@ -1926,7 +1926,7 @@ class MissionOptions(object):
             outputfile.write(" " + str(self.Journeys[j].journey_arrival_type))
         outputfile.write("\n")
         outputfile.write("#journey arrival boundary class (one value per journey)\n")
-        outputfile.write("#0: Ephemeris-pegged (default EMTG)\n")
+        outputfile.write("#0: Ephemeris-pegged (default SOUFFLE)\n")
         outputfile.write("#1: Free point\n")
         outputfile.write("#2: Ephemeris-referenced\n")
         outputfile.write("#3: Periapse\n")

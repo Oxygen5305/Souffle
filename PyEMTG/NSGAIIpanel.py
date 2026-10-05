@@ -300,12 +300,12 @@ class NSGAIIpanel(wx.Panel):
         #note that if C is set but not Z, throw an error
 
         if self.Cobjective < len(self.NSGAIIpopulation.objective_column_headers) - 1 and self.Zobjective == len(self.NSGAIIpopulation.objective_column_headers):
-            errordlg = wx.MessageDialog(self, "You cannot set the color axis without setting the Z axis first", "EMTG Error", wx.OK)
+            errordlg = wx.MessageDialog(self, "You cannot set the color axis without setting the Z axis first", "SOUFFLE Error", wx.OK)
             errordlg.ShowModal()
             errordlg.Destroy()
 
         if self.Sobjective < len(self.NSGAIIpopulation.objective_column_headers) - 1 and self.Cobjective == len(self.NSGAIIpopulation.objective_column_headers):
-            errordlg = wx.MessageDialog(self, "You cannot set the size axis without setting the color axis first", "EMTG Error", wx.OK)
+            errordlg = wx.MessageDialog(self, "You cannot set the size axis without setting the color axis first", "SOUFFLE Error", wx.OK)
             errordlg.ShowModal()
             errordlg.Destroy()
 
@@ -324,7 +324,7 @@ class NSGAIIpanel(wx.Panel):
             #check for duplicate objectives. If present, throw an error
             s = set()
             if any(obj in s or s.add(obj) for obj in ordered_list_of_objectives):
-                errordlg = wx.MessageDialog(self, "Objective axes must be unique", "EMTG Error", wx.OK)
+                errordlg = wx.MessageDialog(self, "Objective axes must be unique", "SOUFFLE Error", wx.OK)
                 errordlg.ShowModal()
                 errordlg.Destroy()
             

@@ -74,8 +74,8 @@ class ConventionalHardwarePanel(wx.Panel):
 
         self.lblengine_type = wx.StaticText(self, -1, "Engine type")
         enginetypes = ['0: fixed thrust/Isp',
-                       '1: constant Isp, efficiency, EMTG computes input power',
-                       '2: choice of power model, constant efficiency, EMTG chooses Isp',
+                       '1: constant Isp, efficiency, SOUFFLE computes input power',
+                       '2: choice of power model, constant efficiency, SOUFFLE chooses Isp',
                        '3: choice of power model, constant efficiency and Isp',
                        '4: continuously-varying specific impulse',
                        '5: custom thrust and mass flow rate polynomial',
@@ -512,7 +512,7 @@ class ConventionalHardwarePanel(wx.Panel):
                 self.txtthrottle_table.Show(False)
                 self.btnthrottle_table_default.Show(False)
             elif self.missionoptions.engine_type == 1:
-                #constant Isp, efficiency, EMTG computes input power
+                #constant Isp, efficiency, SOUFFLE computes input power
                 #do not need anything except Isp, efficiency
                 self.powergridtitle.Show(False)
                 self.lblIspChem.Show(False)
@@ -620,7 +620,7 @@ class ConventionalHardwarePanel(wx.Panel):
                 self.txtpower_decay_rate.Show(True)
 
                 if self.missionoptions.engine_type == 2:
-                    #choice of power model, constant efficiency, EMTG chooses Isp
+                    #choice of power model, constant efficiency, SOUFFLE chooses Isp
                     #all other options off
                     self.lblnumber_of_electric_propulsion_systems.Show(False)
                     self.lblthrust_scale_factor.Show(True)

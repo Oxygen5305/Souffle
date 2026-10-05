@@ -34,7 +34,7 @@ else:
     while True:
         #check if there is an EMTG running
         if running_process("emtg") == 'False\n':
-            print('EMTG has crashed', datetime.datetime.now())
+            print('SOUFFLE has crashed', datetime.datetime.now())
             #figure out what the most recent results directory was
             most_recent_results_directory = max([os.path.join('../EMTG_v8_results',d) for d in os.listdir('../EMTG_v8_results')], key=os.path.getmtime)
             
@@ -52,7 +52,7 @@ else:
             
             #figure out what generation we quit on
             crashed_generation = sortedPopulationList[-1]
-            print('EMTG crashed on generation ', crashed_generation)
+            print('SOUFFLE crashed on generation ', crashed_generation)
             
             #load the reference script, set the appropriate warm start value and archive and population files, then save it with a new name. If the generation we quit on is the last generation, STOP
             OptionsStructure = MissionOptions.MissionOptions(reference_script)
@@ -74,7 +74,7 @@ else:
             print(commandstring)
             os.system(commandstring)
         else:
-            print('EMTG is alive', datetime.datetime.now())
+            print('SOUFFLE is alive', datetime.datetime.now())
         #sleep for a while
         #set this to 600 seconds for now
         sys.stdout.flush()

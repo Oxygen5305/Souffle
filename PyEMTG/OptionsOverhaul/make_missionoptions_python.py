@@ -93,7 +93,7 @@ def make_PyEMTG_MissionOptions(OptionsDefinitions, now, path = '.'):
         file.write('            inputFile = open(optionsFileName, "r")\n')
         file.write('            self.success = 1\n')
         file.write('        else:\n')
-        file.write('            print("Unable to open", optionsFileName, "EMTG Error")\n')
+        file.write('            print("Unable to open", optionsFileName, "SOUFFLE Error")\n')
         file.write('            return\n')
         file.write('        \n')
         file.write('        while True:\n')

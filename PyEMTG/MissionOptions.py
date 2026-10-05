@@ -142,7 +142,7 @@ class MissionOptions(object):
         self.LV_adapter_mass = 0
         """LV adapter mass (kg)"""
         self.engine_type = 5
-        """low-thrust engine type, from default EMTGv9.02 list"""
+        """low-thrust engine type, from the EMTG 9.02 option list"""
         self.number_of_electric_propulsion_systems = 1
         """number of thruster systems (used to be called number of engines)"""
         self.engine_duty_cycle = 1
@@ -283,7 +283,7 @@ class MissionOptions(object):
         """How long to output an ephemeris after the mission end (days)"""
         self.override_working_directory = 0
         """Override the working directory?"""
-        self.forced_working_directory = "..//EMTG_v9_Results"
+        self.forced_working_directory = "..//SOUFFLE_Results"
         """User-defined working directory"""
         self.override_mission_subfolder = 0
         """Create a mission subfolder?"""
@@ -316,7 +316,7 @@ class MissionOptions(object):
         self.append_throttle_level_to_ephemeris_output = 0
         """Append throttle level to ephemeris output?"""
         self.call_system_to_generate_bsp = 0
-        """Should EMTG make a system call to clean the .ephemeris file and call python to call spice to generate the bsp?"""
+        """Should SOUFFLE make a system call to clean the .ephemeris file and call python to call spice to generate the bsp?"""
         self.spice_utilities_path = "C:/utilities/cspice/exe"
         """Where are the spice utilities brief and mkspk located?"""
         self.spice_utility_extension = ".exe"
@@ -338,7 +338,7 @@ class MissionOptions(object):
         self.run_inner_loop = 1
         """Which inner loop solver to run?"""
         self.checkFeasibilityTolInMBHToSkipNLP = 0
-        """Should EMTG check the feasibility tolerance of the initial guess when running in MBH mode and skip the NLP solve for that iteration if the feasibility tolerance is greater than feasibilityTolInMBHToSkipNLP?"""
+        """Should SOUFFLE check the feasibility tolerance of the initial guess when running in MBH mode and skip the NLP solve for that iteration if the feasibility tolerance is greater than feasibilityTolInMBHToSkipNLP?"""
         self.feasibilityTolInMBHToSkipNLP = 1000000
         """If checkFeasibilityTolInMBHToSkipNLP is true, then we skip the NLP solve for any MBH iteration whose initial feasibility is greater than the value of this option."""
         self.MBH_max_not_improve_with_NLP_skip = 10000
@@ -1197,7 +1197,7 @@ class MissionOptions(object):
                 optionsFile.write("LV_adapter_mass " + str(self.LV_adapter_mass) + "\n")
     
             if (self.engine_type != 5 or writeAll):
-                optionsFile.write("#low-thrust engine type\n#0: fixed thrust/Isp\n#1: constant Isp, efficiency, EMTG computes input power\n#2: choice of power model, constant efficiency, EMTG chooses Isp\n#3: choice of power model, constant efficiency and Isp\n#4: continuously-varying specific impulse\n#5: custom thrust and mass flow rate polynomial\n#6: AEPS_High_Thrust_and_Isp\n#7: BIT3_High_Thrust_and_Isp\n#8: Halo12_High_Thrust\n#9: Halo12_High_Isp\n#10: NEXTC_High_Thrust\n#11: NEXTC_High_Isp\n#12: PPS5000_High_Thrust\n#13: PPS5000_High_Isp\n#14: 2D Throttle table\n#15: 1D Throttle table high-thrust\n#16: 1D Throttle table high-Isp\n#17: 2D polynomial fit\n")
+                optionsFile.write("#low-thrust engine type\n#0: fixed thrust/Isp\n#1: constant Isp, efficiency, SOUFFLE computes input power\n#2: choice of power model, constant efficiency, SOUFFLE chooses Isp\n#3: choice of power model, constant efficiency and Isp\n#4: continuously-varying specific impulse\n#5: custom thrust and mass flow rate polynomial\n#6: AEPS_High_Thrust_and_Isp\n#7: BIT3_High_Thrust_and_Isp\n#8: Halo12_High_Thrust\n#9: Halo12_High_Isp\n#10: NEXTC_High_Thrust\n#11: NEXTC_High_Isp\n#12: PPS5000_High_Thrust\n#13: PPS5000_High_Isp\n#14: 2D Throttle table\n#15: 1D Throttle table high-thrust\n#16: 1D Throttle table high-Isp\n#17: 2D polynomial fit\n")
                 optionsFile.write("engine_type " + str(self.engine_type) + "\n")
     
             if (self.number_of_electric_propulsion_systems != 1 or writeAll):
@@ -1498,7 +1498,7 @@ class MissionOptions(object):
                 optionsFile.write("#Override the working directory?\n")
                 optionsFile.write("override_working_directory " + str(int(self.override_working_directory)) + "\n")
     
-            if (self.forced_working_directory != "..//EMTG_v9_Results" or writeAll):
+            if (self.forced_working_directory != "..//SOUFFLE_Results" or writeAll):
                 optionsFile.write("#User-defined working directory\n")
                 optionsFile.write("forced_working_directory " + str(self.forced_working_directory) + "\n")
     
@@ -1607,7 +1607,7 @@ class MissionOptions(object):
                 optionsFile.write("run_inner_loop " + str(self.run_inner_loop) + "\n")
     
             if (self.checkFeasibilityTolInMBHToSkipNLP != 0 or writeAll):
-                optionsFile.write("#Should EMTG check the feasibility tolerance of the initial guess when running in MBH mode and skip the NLP solve for that iteration if the feasibility tolerance is greater than feasibilityTolInMBHToSkipNLP?\n")
+                optionsFile.write("#Should SOUFFLE check the feasibility tolerance of the initial guess when running in MBH mode and skip the NLP solve for that iteration if the feasibility tolerance is greater than feasibilityTolInMBHToSkipNLP?\n")
                 optionsFile.write("checkFeasibilityTolInMBHToSkipNLP " + str(int(self.checkFeasibilityTolInMBHToSkipNLP)) + "\n")
     
             if (self.feasibilityTolInMBHToSkipNLP != 1000000 or writeAll):
