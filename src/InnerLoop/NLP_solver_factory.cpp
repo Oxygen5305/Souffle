@@ -1,4 +1,4 @@
-// SOUFFLE: solver factory implementation.
+// SOUFFLE: solver factory implementation,using Uno.
 //
 // Licensed under the NASA Open Source Agreement 1.3, like the rest of EMTG.
 
