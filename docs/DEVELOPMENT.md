@@ -320,3 +320,22 @@ SOUFFLE 现在带**两个求解器**（Uno 与 Ipopt）。它们**不能同进�
   uno    ok  wall_s=69.1   SOUFFLE[solve]: preset=filtersqp opt_status=2 sol_status=0 iters=5721
   ipopt  ok  wall_s=36.7   SOUFFLE[ipopt-solve]: status=0 inform=1 iters=781 callbacks=782
 ```
+
+### 11.4 与 SNOPT 版的时间对比
+
+上面那张表容易让人以为联合寻优"要付时间代价"。**相对 SNOPT 版恰恰相反**：
+
+| | MBH 预算 | 单次求解上限 | 一次运行最长 |
+|---|---|---|---|
+| SOUFFLE 出厂算例设置（SNOPT 风格） | `900` s | `60` s | **900 s** |
+| 联合寻优 `parallel` | `60` s | Uno 15 s / Ipopt 8 s | **62 s** |
+| 联合寻优 `both` | `60 + 30` s | 同上 | **100 s** |
+
+所以从 SNOPT 版换过来的人，**等待时间缩短约 9–14 倍**，而末质量还更高。
+
+原因不神秘：联合寻优把**单次求解上限**从 60 s 降到 15 s / 8 s。原先把上限留在 120 s 时，
+实测 Ipopt 在 120 s 里跑了 11847 次迭代，而 **1352 次就达到了完全相同的解**——多出来的时间
+纯属空转。降上限几乎不损失质量，却直接砍掉墙钟。
+
+（"Uno 单独 62 s → `both` 100 s" 那笔账是**联合寻优内部**的比较：多串一段热启动换约 19 kg。
+两者不矛盾——相对 SNOPT 它快得多，相对"只跑 Uno"它多花 38 s。）

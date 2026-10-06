@@ -74,3 +74,9 @@ answer rather than a longer search.
 
 墙钟 ≈ `max(MBH 预算, 单次求解上限)`。想更快就调小 `snopt_max_run_time`
 （`united.py` 顶部 `UNO_TIME` / `IPOPT_TIME` 亦可）。
+
+#### 比出厂设置快得多
+
+出厂算例是 `MBH_max_run_time 900` + `snopt_max_run_time 60`，即一次运行最长 **900 s**；
+联合寻优用 60 s 预算、15 s / 8 s 单次上限，`parallel` **62 s**、`both` **100 s**。
+换过来等于是**提速约 9–14 倍**，质量还更高。
