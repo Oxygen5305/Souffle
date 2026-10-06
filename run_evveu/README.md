@@ -62,3 +62,15 @@ python ..\\united\\united.py --case EVVEU_LTGA_L1.emtgopt --out ..\\united_out\\
 `--mode parallel` skips the warm-start leg and is roughly twice as fast. Keep in mind that wall
 clock is `max(MBH budget, per-solve limit)`; lower `snopt_max_run_time` if you want a quicker
 answer rather than a longer search.
+
+### 用时参考
+
+| 编排 | 单任务墙钟 | 说明 |
+|---|---|---|
+| Uno 单独 | 62 s | 上面那个 `--mode` 之外的默认跑法 |
+| Ipopt 单独（冷） | 33 s | 最快，但质量最低 |
+| `parallel` | 62 s | 与只跑 Uno 同价：Ipopt 藏在 Uno 后面 |
+| `both`（默认） | 100 s | 多串一段热启动，多花约 38 s |
+
+墙钟 ≈ `max(MBH 预算, 单次求解上限)`。想更快就调小 `snopt_max_run_time`
+（`united.py` 顶部 `UNO_TIME` / `IPOPT_TIME` 亦可）。

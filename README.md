@@ -44,7 +44,9 @@ only the solver interface is new.
   runs both, plus a third Ipopt warm-started from Uno's answer, as separate processes and keeps
   the best result. On 130 tasks across four mission families that averaged about 19 kg more
   final mass than the better of Uno and a cold Ipopt alone, and 87 kg more than Uno by itself.
-  Separate processes are not a style choice: the two solvers ship same-named MinGW runtimes
+  The parallel leg is nearly free — Uno takes 62 s and Ipopt 33 s, yet running both takes
+  the same 62 s, because Ipopt hides behind Uno. Separate processes are not a style
+  choice: the two solvers ship same-named MinGW runtimes
   built from different toolchains, and Windows resolves DLLs by name.
 - **Same GUI** — PyEMTG edits and runs `.emtgopt` files and plots `.emtg` results, exactly as in
   the SNOPT build.
