@@ -1,6 +1,6 @@
 # SOUFFLE 设计文档
 
-本文件说明 **Uno 求解器如何接入 EMTG**：动态加载层、求解器接口与 EMTG 数据结构之间的逐项映射、
+本文件说明 **求解器如何接入 EMTG**：动态加载层、求解器接口与 EMTG 数据结构之间的逐项映射、
 回调与终止条件的处理，以及开发过程中确认的关键约束。
 
 ---
@@ -178,3 +178,42 @@ SOUFFLE[solve]: preset=filtersqp opt_status=4 sol_status=0 iters=2012 cpu=23.79 
 | `_probe\gui_window_check.py` | 按窗口标题验证 GUI 是否真的打开 |
 | `_probe\find_encoding_damage.py` | 校验含非 ASCII 的文件是否为有效 UTF-8 |
 | `tier2_driver.py` | 用 SOUFFLE 驱动 ESFO_Uranus 二级流水线 |
+
+---
+
+## 10. 联合寻优（united）
+
+单个求解器会停在它先走到的那个局部盆地。Uno 与 Ipopt 的起步方向、信赖域策略和停止判据都不同，
+**实测它们落点不同**，因此同时跑两者、取较优解，比任何一个单独跑都划算。
+
+### 10.1 为什么必须是两个进程
+
+Uno 与 Ipopt 各自携带**同名但不同工具链编译的 MinGW 运行时**
+（`libwinpthread-1.dll`、`libgcc_s_seh-1.dll`、`libgomp-1.dll`、`libatomic-1.dll`、
+`libquadmath-0.dll`）。Windows 按**名字**解析模块，先加载的一方占住名字之后，另一方的延迟
+加载就会解析到错误版本——同进程方案实测在 Ipopt 第一次迭代即以
+`0xc06d007f`（`ERROR_DELAY_LOAD_FAILED`）退出。调整 `PATH` 顺序只是把故障转移给另一方。
+
+所以联合寻优由 `united/united.py` 编排**独立进程**，而不是在同一个 `run_NLP` 里切换求解器。
+
+### 10.2 两种编排
+
+| `--mode` | 编排 | 单任务墙钟 |
+|---|---|---|
+| `parallel` | Uno ‖ 独立 Ipopt → 取优 | ≈ 62 s |
+| `both`（默认） | 上面两路，再以 **Uno 的解**热启动一次 Ipopt → 三者取优 | ≈ 100 s |
+
+`both` 值得作默认：冷启动的 Ipopt 与热启动的 Ipopt **落在不同盆地**，三者取优相对
+`max(Uno, 独立 Ipopt)` 平均多拿约 **19 kg**，代价只是多串一段 Ipopt。
+
+### 10.3 墙钟由单次求解上限决定
+
+墙钟 ≈ `max(MBH 预算, 单次求解上限)`，因为 MBH 打断不了进行中的求解。真正的旋钮是
+**单次求解上限**，不是总预算。
+
+### 10.4 一个二进制、两种求解器
+
+发行包只带一个 `SOUFFLE.exe`。`united.py` 通过 `SOUFFLE_NLP_SOLVER` 决定每一路跑哪个求解器，
+`SOUFFLE_IPOPT_LIB` 指向 `ipopt-3.dll` 所在目录。算例里的数据路径由 `geometry.py`
+按包根**绝对化**，因为联合寻优在各自的阶段目录里运行可执行文件，而算例里的路径原本是相对
+`bin/` 的。

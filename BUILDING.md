@@ -138,6 +138,30 @@ installed, and its launcher regenerates `PyEMTG.options` on every start.
 
 ---
 
+---
+
+## 5c. Union search (optional)
+
+One binary holds both solvers, but they must run as **separate processes**: Uno and Ipopt ship
+same-named MinGW runtimes built from different toolchains, and Windows resolves DLLs by name, so
+whichever loads first wins and the other dies with `0xc06d007f`. `united/united.py` runs them
+side by side and keeps the better answer:
+
+```bat
+set SOUFFLE_UNO_ROOT=<path to Uno>
+set SOUFFLE_IPOPT_LIB=<directory holding ipopt-3.dll>
+python united\\united.py --case my_case.emtgopt --out run\\ --mode both
+```
+
+`--mode parallel` runs Uno and a cold Ipopt; `--mode both` (the default) adds a third solve that
+warm-starts Ipopt from Uno's answer. Cold and warm-started Ipopt land in different basins, so
+taking all three beats the best of the first two by roughly 19 kg on average.
+
+Wall clock is `max(MBH budget, per-solve limit)` — MBH cannot interrupt a solve in progress, so
+the per-solve limit is the real knob.
+
+---
+
 ## 6. Verifying the SNOPT-free build
 
 Two independent checks:

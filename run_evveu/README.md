@@ -41,3 +41,22 @@ solver comparison in [`../docs/DEVELOPMENT.md`](../docs/DEVELOPMENT.md).
 ## Output
 
 Written under `../results/`, as set by `forced_working_directory` in each case.
+
+---
+
+## Running these with union search
+
+The cases below work with a plain `SOUFFLE.exe` run, but they are also what `united/` is for.
+Union search runs Uno and Ipopt as separate processes and keeps the better answer — cold and
+warm-started Ipopt settle in different basins, so taking all three beats either solver alone by
+roughly 19 kg on average.
+
+```bat
+set SOUFFLE_UNO_ROOT=<Uno install>
+set SOUFFLE_IPOPT_LIB=<directory holding ipopt-3.dll>
+python ..\\united\\united.py --case EVVEU_LTGA_L1.emtgopt --out ..\\united_out\\ --mode both
+```
+
+`--mode parallel` skips the warm-start leg and is roughly twice as fast. Keep in mind that wall
+clock is `max(MBH budget, per-solve limit)`; lower `snopt_max_run_time` if you want a quicker
+answer rather than a longer search.

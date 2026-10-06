@@ -284,3 +284,37 @@ powershell -File package\package_souffle.ps1 -Force
 - 批量文本替换前先备份
 - 事后用脚本校验：**凡含非 ASCII 的文件，必须能被 UTF-8 解码**
   （`_probe\find_encoding_damage.py` 即为此用途）
+
+---
+
+## 11. 联合寻优实测
+
+### 11.1 为什么取三者之优
+
+四族任务、共 130 个算例，与 SNOPT 基准的差值（末质量，kg）：
+
+| 编排 | 中位 | 平均 |
+|---|---|---|
+| Uno 单独 | −4.57 | +34.07 |
+| Ipopt 单独（冷启动） | **+11.22** | **+65.64** |
+| Ipopt 单独（以 Uno 的解热启动） | +4.36 | +47.67 |
+| `max(Uno, 冷 Ipopt)` | +40.90 | +102.46 |
+| `max(Uno, 热 Ipopt)` | +42.77 | +81.71 |
+| **`max(三者)`** | **+76.76** | **+121.41** |
+
+两个结论：
+
+- **冷启动的 Ipopt 优于热启动的 Ipopt**，所以热启动**不能替代**独立跑一路；
+- 两者**落在不同盆地**，因此同时保留才是最划算的。
+
+这不支持早期"只在有把握时才跑 Ipopt"的思路——那个判据恰好会跳掉真正带来收益的那些求解。
+
+### 11.2 实测一次（发行包、`--mode parallel`）
+
+```
+完成 1 个，出解 1 个，总用时 69 s
+取优来源分布: {'uno': 1}
+末质量 4698.394 kg   墙钟 69.1 s
+  uno    ok  wall_s=69.1   SOUFFLE[solve]: preset=filtersqp opt_status=2 sol_status=0 iters=5721
+  ipopt  ok  wall_s=36.7   SOUFFLE[ipopt-solve]: status=0 inform=1 iters=781 callbacks=782
+```

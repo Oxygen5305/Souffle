@@ -36,9 +36,11 @@ SOUFFLE 在不触碰 EMTG 的物理模型、转录方式和任务定义的前提
   因此 SOUFFLE 用 `LoadLibraryExW` + `GetProcAddress` 调用它；构建时只需要 `Uno_C_API.h`。
 - **Ipopt 作为第二种内层求解器** —— 正常链接，因为它的导入库是 MSVC 可用的 COFF 归档。
   用 `SOUFFLE_NLP_SOLVER=IPOPT` 选择。
-- **联合寻优** —— 冷启动的 Uno 与 Ipopt 会落在不同盆地，因此 `united/` 把两者（外加一个用
-  Uno 解热启动的 Ipopt）作为独立进程同时跑，取最优解。在四个任务族、130 个算例上实测，
-  末质量平均比"Uno 与冷 Ipopt 各自取优"再多约 19 kg。
+- **联合寻优** —— 冷启动的 Uno 与 Ipopt 会落在**不同盆地**，因此 `united/` 把两者（外加一个
+  用 Uno 解热启动的 Ipopt）作为**独立进程**同时跑，取最优解。四个任务族、130 个算例实测：
+  末质量平均比"Uno 与冷 Ipopt 各自取优"再多约 **19 kg**，比 Uno 单独多约 **87 kg**。
+  之所以必须独立进程，是因为两个求解器各自携带**同名但不同工具链编译的 MinGW 运行时**，
+  而 Windows 按名字解析 DLL。
 - **同一个图形界面** —— PyEMTG 可编辑并运行 `.emtgopt`、绘制 `.emtg` 结果，与 SNOPT 版一致。
 - **同一套物理模型** —— MGALT、前向/后向打靶、匹配点约束、journey/phase 树、
   Monotonic Basin Hopping 全局搜索，全部原样保留。

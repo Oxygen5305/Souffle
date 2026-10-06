@@ -40,10 +40,12 @@ only the solver interface is new.
   only `Uno_C_API.h`.
 - **Ipopt as a second inner-loop solver** — linked normally, because its import library is a COFF
   archive MSVC can use. Selected with `SOUFFLE_NLP_SOLVER=IPOPT`.
-- **Union search** — cold-started Uno and Ipopt settle in different basins, so `united/` runs
-  both (plus an Ipopt warm-started from Uno's answer) as separate processes and keeps the best
-  result. On 130 tasks across four mission families this averaged about 19 kg more final mass
-  than the better of Uno and a cold Ipopt alone.
+- **Union search** — cold-started Uno and Ipopt settle in **different basins**, so `united/`
+  runs both, plus a third Ipopt warm-started from Uno's answer, as separate processes and keeps
+  the best result. On 130 tasks across four mission families that averaged about 19 kg more
+  final mass than the better of Uno and a cold Ipopt alone, and 87 kg more than Uno by itself.
+  Separate processes are not a style choice: the two solvers ship same-named MinGW runtimes
+  built from different toolchains, and Windows resolves DLLs by name.
 - **Same GUI** — PyEMTG edits and runs `.emtgopt` files and plots `.emtg` results, exactly as in
   the SNOPT build.
 - **Same physics** — MGALT, forward/backward shooting, match-point constraints, the journey/phase
