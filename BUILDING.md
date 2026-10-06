@@ -142,6 +142,8 @@ installed, and its launcher regenerates `PyEMTG.options` on every start.
 
 ## 5c. Union search (optional)
 
+One binary holds **two solvers** (Uno and Ipopt), but they must run as separate processes:
+
 One binary holds both solvers, but they must run as **separate processes**: Uno and Ipopt ship
 same-named MinGW runtimes built from different toolchains, and Windows resolves DLLs by name, so
 whichever loads first wins and the other dies with `0xc06d007f`. `united/united.py` runs them

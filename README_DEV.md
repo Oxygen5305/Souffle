@@ -66,6 +66,8 @@ build.bat [uno|ipopt|all] [build|configure|clean]
 | `Uno` | `Souffle_interface.cpp` | 默认；含两处关键修复（见下） |
 | `IPOPT` | `Ipopt_interface.cpp` | Ipopt 3.14.19；每次迭代都回调，incumbent 池远大于 Uno |
 
+**联合寻优**由 `united/united.py` 编排：Uno 与独立 Ipopt 各跑一路取优（`parallel`），再用 **Uno 的解热启动**一次 Ipopt、三者取优（`both`）。冷启动与热启动的 Ipopt 落在不同盆地，所以热启动**不能替代**独立那一路；两者必须**独立进程**，因为同名 MinGW 运行时冲突。
+
 ### Uno 接口的两处关键修复
 
 - **D1 目标梯度**：MinTOF（`objective_type=1`）的唯一非零导数在**线性**雅可比 `A` 里，而

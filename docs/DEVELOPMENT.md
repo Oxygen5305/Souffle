@@ -289,6 +289,8 @@ powershell -File package\package_souffle.ps1 -Force
 
 ## 11. 联合寻优实测
 
+SOUFFLE 现在带**两个求解器**（Uno 与 Ipopt）。它们**不能同进程运行**：两者各自携带同名但不同工具链编译的 MinGW 运行时，Windows 按名字解析 DLL，后加载的一方会以 `0xc06d007f` 失败。因此联合寻优把两者作为**独立进程**编排。
+
 ### 11.1 为什么取三者之优
 
 四族任务、共 130 个算例，与 SNOPT 基准的差值（末质量，kg）：

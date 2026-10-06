@@ -46,6 +46,8 @@ Written under `../results/`, as set by `forced_working_directory` in each case.
 
 ## Running these with union search
 
+Union search runs **two solvers** (Uno and Ipopt) as separate processes and keeps the better answer:
+
 The cases below work with a plain `SOUFFLE.exe` run, but they are also what `united/` is for.
 Union search runs Uno and Ipopt as separate processes and keeps the better answer — cold and
 warm-started Ipopt settle in different basins, so taking all three beats either solver alone by
