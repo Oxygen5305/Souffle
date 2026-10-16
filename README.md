@@ -310,7 +310,7 @@ Field meanings:
 |---|---|---|
 | member name `mySNOPT` | `monotonic_basin_hopping.*`, `FilamentWalker.*`, `problem.cpp` | the type is now `NLP_interface*`, but the member name was kept. Purely a naming matter; changing it touches many places for no functional gain |
 | the text `"SNOPT has crashed ..."` | `monotonic_basin_hopping.cpp:362` | MBH's try-catch fallback branch; it triggers when **a solve throws**, independently of the solver choice |
-| the file name `.SNOPTcrash` | as above, `:366` / `:371` | changing it would affect ESFO_Uranus's archiving and scanning logic |
+| the file name `.SNOPTcrash` | as above, `:366` / `:371` | changing it would affect external tooling that archives or scans for that name |
 
 ---
 
@@ -325,7 +325,6 @@ Field meanings:
 | `_probe\run_build.ps1` | incremental build only |
 | `_probe\gui_window_check.py` | verify by window title that the GUI really opened |
 | `_probe\find_encoding_damage.py` | check that files containing non-ASCII are valid UTF-8 |
-| `tier2_driver.py` | drive the ESFO_Uranus tier-2 pipeline with SOUFFLE |
 
 ---
 
@@ -477,7 +476,7 @@ points and matches EMTG's analytic gradients and sparse structure naturally.
 
 **Every setting must be aligned before the comparison means anything.**
 
-After alignment (`run_evveu\RETRY_t40_aligned.emtgopt`, matching `ESFO_Uranus\code\emtg_options.py`
+After alignment (`run_evveu\RETRY_t40_aligned.emtgopt`, matching the reference case's options
 item by item):
 
 | Parameter | Aligned value | Reference |
@@ -507,9 +506,9 @@ Model size: **518 variables / 206 constraints / 4721 Jacobian nonzeros** (only 8
 all aligned, SOUFFLE/Uno's final mass is **160.3 kg (+3.61%)** higher than the comparable SNOPT
 reference, which proves that SOUFFLE can sometimes find a better solution than SNOPT.
 
-#### 3.3 ESFO_Uranus Uranus interplanetary transfer sequence tier-2 high-fidelity broad-search measurement (real engineering pipeline)
+#### 3.3 Uranus interplanetary transfer sequence broad-search measurement (real engineering pipeline)
 
-Using ESFO_Uranus's **own** tier-2 pipeline (`code\emtg_pipeline.py`) and its **own** case
+Using an **independent** two-stage pipeline (`code\emtg_pipeline.py`) and its **own** case
 definition (`emtg\tier2_plan_2044_window.json`: 2044 window, `t0=16144.5`,
 `tofs=[150,380,52,1610]`, TOF range [2136.7, 2374.1]), with only `config.EMTG_BIN` pointed at
 SOUFFLE in memory:
@@ -526,7 +525,7 @@ Solver statistics: 23 Uno solves, 12 "New global best", worst constraint violati
 **The two almost coincide** — this is the strongest consistency evidence: a real pipeline, a real
 case definition, and no parameter tuned by hand.
 
-Driver script: `Souffle_Cheese\tier2_driver.py` (**does not modify ESFO_Uranus**; it works by
+Driver script: `tier2_driver.py` (**does not modify the project being driven**; it works by
 overriding `config.EMTG_BIN`).
 
 ---
@@ -605,7 +604,7 @@ absolute path. `-SkipGUI` produces a slim package without the GUI (direct-run mo
 |---|---|
 | `.SNOPTcrash` file name | see §7, a legacy name; its triggering is unrelated to the solver choice |
 | Exit codes are unreliable in long piped runs | the tier-2 driver scripts now use `*> $log` file redirection plus `PYTHONUNBUFFERED=1`; previously a 30-minute run through a pipe reported a bogus `exit=-1` and lost all buffered output |
-| ESFO_Uranus's `config.EMTG_BIN` | hard-coded to point at the original EMTG, with no environment-variable override. `tier2_driver.py` overrides it in memory and **does not modify that project** |
+| an external project's `config.EMTG_BIN` | hard-coded to point at the original EMTG, with no environment-variable override. `tier2_driver.py` overrides it in memory and **does not modify that project** |
 | `SOUFFLE_UNO_PRESET` case | the value must be upper case, otherwise it is silently rejected |
 | `SNOPTcrash` during the probe phase | a normal by-product of first-round NLP divergence |
 | **Always specify UTF-8 when writing files** | PowerShell on this machine defaults to ANSI (GBK); using `Set-Content` without `-Encoding UTF8` will **permanently corrupt** UTF-8 Chinese text. See §11 |

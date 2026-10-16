@@ -285,7 +285,7 @@ SOUFFLE[solve]: preset=filtersqp opt_status=4 sol_status=0 iters=2012 cpu=23.79 
 |---|---|---|
 | 成员名 `mySNOPT` | `monotonic_basin_hopping.*`、`FilamentWalker.*`、`problem.cpp` | 类型已改为 `NLP_interface*`，但成员名沿用。纯命名问题，改动面大且无功能收益 |
 | 文本 `"SNOPT has crashed ..."` | `monotonic_basin_hopping.cpp:362` | MBH 的 try-catch 兜底分支，触发条件是**求解抛异常**，与求解器选择无关 |
-| 文件名 `.SNOPTcrash` | 同上，`:366` / `:371` | 改它会影响 ESFO_Uranus 的归档/扫描逻辑 |
+| 文件名 `.SNOPTcrash` | 同上，`:366` / `:371` | 改它会影响按该文件名做归档/扫描的外部流程 |
 
 ---
 
@@ -300,7 +300,6 @@ SOUFFLE[solve]: preset=filtersqp opt_status=4 sol_status=0 iters=2012 cpu=23.79 
 | `_probe\run_build.ps1` | 仅增量编译 |
 | `_probe\gui_window_check.py` | 按窗口标题验证 GUI 是否真的打开 |
 | `_probe\find_encoding_damage.py` | 校验含非 ASCII 的文件是否为有效 UTF-8 |
-| `tier2_driver.py` | 用 SOUFFLE 驱动 ESFO_Uranus 二级流水线 |
 
 ---
 
@@ -438,7 +437,7 @@ Uno的IPOPT预设是指使用IPOPT相同的算法下进行优化，与原生IPOP
 
 **必须所有设置对齐才可比。**
 
-对齐后（`run_evveu\RETRY_t40_aligned.emtgopt`，与 `ESFO_Uranus\code\emtg_options.py` 逐项一致）：
+对齐后（`run_evveu\RETRY_t40_aligned.emtgopt`，与基准算例的选项逐项一致）：
 
 | 参数 | 对齐值 | 基准 |
 |---|---|---|
@@ -465,9 +464,9 @@ Uno的IPOPT预设是指使用IPOPT相同的算法下进行优化，与原生IPOP
 **结论（谨慎）**：在转录、物理模型、初始质量、离散化、容差全部对齐的条件下，
 SOUFFLE/Uno 的末质量比同档 SNOPT 基准高 **160.3 kg（+3.61%）**，证明SOUFFLE有时能找到比SNOPT更优的解。
 
-#### 3.3 ESFO_Uranus 天王星行星际转移序列二次高精度广泛寻优实测（真实工程流水线）
+#### 3.3 天王星行星际转移序列广泛寻优实测（真实工程流水线）
 
-用 ESFO_Uranus **自己的**二级流水线（`code\emtg_pipeline.py`）、**自己的** case 定义
+用一条**独立的**二级流水线（`code\emtg_pipeline.py`）、**独立的** case 定义
 （`emtg\tier2_plan_2044_window.json`：2044 窗口，`t0=16144.5`，`tofs=[150,380,52,1610]`，
 TOF 区间 [2136.7, 2374.1]），仅把 `config.EMTG_BIN` 在内存中指向 SOUFFLE：
 
@@ -482,7 +481,7 @@ TOF 区间 [2136.7, 2374.1]），仅把 `config.EMTG_BIN` 在内存中指向 SOU
 
 **两者几乎重合** —— 这是最强的一致性证据：走真实流水线、真实 case 定义，未手工调任何参数。
 
-驱动脚本：`Souffle_Cheese\tier2_driver.py`（**不修改 ESFO_Uranus**，通过覆盖 `config.EMTG_BIN` 实现）。
+驱动脚本：`tier2_driver.py`（**不修改被驱动的工程**，通过覆盖 `config.EMTG_BIN` 实现）。
 
 ---
 
@@ -557,7 +556,7 @@ powershell -File package\package_souffle.ps1 -Force
 |---|---|
 | `.SNOPTcrash` 文件名 | 见 §7，属历史命名，触发与求解器选择无关 |
 | 长时管道下退出码不可靠 | 二级驱动脚本已改为 `*> $log` 文件重定向 + `PYTHONUNBUFFERED=1`；此前 30 分钟运行配合管道会给出虚假的 `exit=-1` 并丢失全部缓冲输出 |
-| `ESFO_Uranus` 的 `config.EMTG_BIN` | 硬编码指向原版 EMTG，无环境变量覆盖。用 `tier2_driver.py` 在内存中覆盖，**不修改该工程** |
+| 外部工程的 `config.EMTG_BIN` | 硬编码指向原版 EMTG，无环境变量覆盖。用 `tier2_driver.py` 在内存中覆盖，**不修改该工程** |
 | `SOUFFLE_UNO_PRESET` 大小写 | 值必须大写，否则被静默拒绝 |
 | 探测阶段的 `SNOPTcrash` | 首轮 NLP 发散的正常副产物 |
 | **写文件务必指定 UTF-8** | 本机 PowerShell 默认 ANSI(GBK)，用 `Set-Content` 不带 `-Encoding UTF8` 会**永久破坏** UTF-8 中文。见 §11 |
