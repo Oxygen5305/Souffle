@@ -193,8 +193,8 @@ X_unscaled[i] = X_scaled[i] * X_scale_factors[i] + X_lowerbounds[i]
 推导依据：EMTG 内部以 `X_unscaled = X_scaled * scale + Xlower` 定义缩放，
 因此缩放下界为 0、上界为 `(Xu - Xl) / scale`。
 
-**踩坑**：早期直接把 `X_upperbounds` 传给 Uno，导致所有变量上界偏大 `scale` 倍，
-求解器在物理无意义的区域内搜索，表现为"总能找到解但约束很差"。
+上界必须先除以 `scale` 再传给 Uno：直接传 `X_upperbounds` 会让上界偏大 `scale` 倍，
+求解器随即在物理无意义的区域内搜索，表现为"总能找到解但约束很差"。
 
 ---
 

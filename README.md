@@ -210,8 +210,8 @@ X_unscaled[i] = X_scaled[i] * X_scale_factors[i] + X_lowerbounds[i]
 Derivation: EMTG defines scaling internally as `X_unscaled = X_scaled * scale + Xlower`, so the
 scaled lower bound is 0 and the upper bound is `(Xu - Xl) / scale`.
 
-**Pitfall**: an early version passed `X_upperbounds` straight to Uno, which made every variable's
-upper bound too large by a factor of `scale`; the solver then searched a physically meaningless
+The upper bound must be divided by `scale` before it reaches Uno: passing `X_upperbounds`
+directly makes it too large by that factor, and the solver then searches a physically meaningless
 region, showing up as "always finds a solution but the constraints are poor".
 
 ---
