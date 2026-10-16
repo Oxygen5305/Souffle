@@ -39,16 +39,10 @@ only the solver interface is new.
   only `Uno_C_API.h`.
 - **Ipopt as a second inner-loop solver** — linked normally, because its import library is a COFF
   archive MSVC can use. Selected with `SOUFFLE_NLP_SOLVER=IPOPT`.
-- **Union search** — cold-started Uno and Ipopt settle in **different basins**, so `united/` runs
-  both, plus a third Ipopt warm-started from Uno's answer, as separate processes, and keeps the
-  best result. On 130 tasks across four mission families, that averaged about 19 kg more final
-  mass than the better of Uno and a cold Ipopt alone, and 87 kg more than Uno by itself. Union
-  search is also far quicker than the SNOPT build: the per-solve limit drops from 60 s to 15 s /
-  8 s, and a run finishes in about 62 s, against up to 900 s with the shipped case defaults. The
-  parallel leg costs nothing extra: Uno takes 62 s and Ipopt 33 s, yet running both takes the same
-  62 s, because Ipopt runs behind Uno. Separate processes are a requirement, not a style choice —
-  the two solvers ship same-named MinGW runtimes built by different toolchains, and Windows
-  resolves DLLs by name.
+- **Union search** — `united/` runs Uno and Ipopt, plus a third Ipopt warm-started from Uno's
+  answer, as separate processes, and keeps the best result. **Section 8 (Union search)** records
+  the measured gain in final mass, why the legs must be separate processes, and why a run is much
+  shorter than with the shipped case defaults.
 - **Same GUI** — PyEMTG edits and runs `.emtgopt` files and plots `.emtg` results, exactly as in
   the SNOPT build.
 - **Same physics** — MGALT, forward/backward shooting, match-point constraints, the journey/phase
@@ -84,7 +78,7 @@ cmake -S . -B build -G 'NMake Makefiles' -DCMAKE_BUILD_TYPE=Release `
     -DSOUFFLE_UNO_ROOT=<path to Uno> `
     -DSOUFFLE_DEFAULT_SOLVER=Uno `
     -DBOOST_ROOT=<path to Boost>
-cmake --build build          # -> build\src\EMTGv9.exe
+cmake --build build          # -> build\src\SOUFFLE.exe
 ```
 
 No SNOPT directory, header or library is involved in this build.
@@ -111,7 +105,7 @@ start**, which is what keeps the folder relocatable.
 ```bat
 set SOUFFLE_NLP_SOLVER=Uno
 set SOUFFLE_UNO_ROOT=<path to Uno>
-EMTGv9.exe my_case.emtgopt
+SOUFFLE.exe my_case.emtgopt
 ```
 
 | Environment variable | Default | Meaning |
@@ -124,7 +118,7 @@ Switch to the interior-point method without rebuilding:
 
 ```bat
 set SOUFFLE_UNO_PRESET=ipopt
-EMTGv9.exe my_case.emtgopt
+SOUFFLE.exe my_case.emtgopt
 ```
 
 ---
@@ -133,12 +127,11 @@ EMTGv9.exe my_case.emtgopt
 
 ## Design
 
-How the solver is wired into EMTG: the dynamic loading layer, the mapping between the solver
-interface and EMTG's data structures, callback and termination handling, and the constraints
-confirmed by measurement.
+This part describes how the solver is wired into EMTG: the dynamic loading layer, the mapping
+between the solver interface and EMTG's data structures, callback and termination handling, and the
+interface constraints that measurement confirmed.
 
 ---
-
 
 ### 1. Overall structure
 
@@ -324,16 +317,28 @@ by switching solvers inside one `run_NLP`.
 | `parallel` | Uno ‖ separate Ipopt → keep the better | ≈ 62 s |
 | `both` (default) | the two legs above, then one Ipopt warm-started from **Uno's solution** → best of three | ≈ 100 s |
 
-`both` is the default: a cold-started Ipopt and a warm-started Ipopt **land in different basins**,
-and the best of three averages about **19 kg** more than `max(Uno, separate Ipopt)`, at the cost of
-one extra serial Ipopt leg.
+`both` is the default: on the 130-case measurement the best of three averages about **19 kg** more
+than `max(Uno, separate Ipopt)`, at the cost of one extra serial Ipopt leg (the table is in §8.6).
 
 #### 8.3 Wall clock is set by the per-solve limit
 
 Wall clock ≈ `max(MBH budget, per-solve limit)`, because MBH cannot interrupt a solve that is
-already running. The real knob is the **per-solve limit**, not the total budget.
+already running. The real knob is the **per-solve limit**, not the total budget: the shipped case
+leaves it at `snopt_max_run_time 60` under an `MBH_max_run_time 900` budget, so a run can last up
+to 900 s, while union search sets it to 15 s for Uno and 8 s for Ipopt.
 
-#### 8.4 One binary, two solvers
+#### 8.4 Speed against the shipped defaults
+
+Those limits are what buy the speed: a union-search task finishes in the ≈ 62 s (`parallel`) or
+≈ 100 s (`both`) of §8.2, against the up-to-900 s of the shipped defaults — roughly **9–14×
+sooner**, while attaining better final mass.
+
+The per-solve limit is where the time goes. Left at 120 s, Ipopt was measured running 11,847
+iterations where 1,352 reached exactly the same solution. The parallel leg, by contrast, costs
+nothing extra: Uno needs 62 s and Ipopt 33 s, yet running both takes the same 62 s, because Ipopt
+finishes and hides behind Uno.
+
+#### 8.5 One binary, two solvers
 
 The release ships a single `SOUFFLE.exe`. `united.py` uses `SOUFFLE_NLP_SOLVER` to decide which
 solver each leg runs, and `SOUFFLE_IPOPT_LIB` to point at the directory holding `ipopt-3.dll`. Data
@@ -343,13 +348,7 @@ relative to `bin/`.
 
 ---
 
-
-SOUFFLE carries **two solvers** (Uno and Ipopt). They **cannot run in the same process**: each
-ships same-named MinGW runtimes built by different toolchains, Windows resolves DLLs by name, and
-the second-loaded side fails with `0xc06d007f`. Union search therefore orchestrates both as
-**separate processes**.
-
-#### 8.5 Why take the best of three
+#### 8.6 Why take the best of three
 
 Across four mission families and 130 cases in total, differences from the SNOPT reference (final
 mass, kg):
@@ -363,16 +362,19 @@ mass, kg):
 | `max(Uno, warm Ipopt)` | +42.77 | +81.71 |
 | **`max(three)`** | **+76.76** | **+121.41** |
 
+Against Uno alone, `max(three)` averages about **87 kg** more final mass (mean `+121.41 kg` against
+`+34.07 kg`).
+
 Two conclusions:
 
 - **A cold-started Ipopt beats a warm-started Ipopt**, so a warm start **cannot replace** an
   independent leg;
 - the two **land in different basins**, so keeping both is what pays off.
 
-Running Ipopt only "when confident" is therefore counterproductive: that criterion would skip
-exactly the solves that bring the real gains.
+Running Ipopt only "when confident" — on the cases where a win looks likely — is therefore
+counterproductive: that criterion would skip exactly the solves that bring the real gains.
 
-#### 8.6 One measured run (release package, `--mode parallel`)
+#### 8.7 One measured run (release package, `--mode parallel`)
 
 ```
 Completed 1, produced 1 solution, total time 69 s
@@ -386,11 +388,8 @@ final mass 4698.394 kg   wall clock 69.1 s
 
 ## Development and verification record
 
-SOUFFLE is based on NASA's [EMTG](https://github.com/nasa/EMTG) (Evolutionary Mission Trajectory
-Generator). It replaces the inner-loop nonlinear optimizer, **SNOPT**, with the open-source solver
-**[Uno](https://github.com/cvanaret/Uno)**, so the tool remains usable after an SNOPT evaluation
-license expires.
-
+This part is the record behind the design above: feasibility, the toolchain decisions, the
+verification measurements, and the packaged release.
 
 ### 1. Feasibility
 
@@ -401,7 +400,7 @@ license expires.
 | **A preset with SNOPT-like semantics exists** | `filtersqp` ("TR Fletcher-filter restoration inequality-constrained **SQP** method"); plus `ipopt`, `funnel`, `Penalty` |
 | **Callbacks corresponding to EMTG's chaperone exist** | `uno_set_solver_callbacks(...)`: each iteration can yield the primal, feasibility, stationarity and complementarity residuals |
 | No Hessian needed (EMTG does not provide one) | measured: Uno falls back automatically — `An exact Hessian was not provided, setting an L-LBFGS Hessian instead` |
-| Subproblem solvers and linear algebra are complete, **with no license restrictions** | `Uno\deps\`: BQPD, HiGHS, MUMPS, METIS, OpenBLAS, SPRAL; `libhsl.dll` is the license-free dummy build described in the official documentation |
+| Subproblem solvers and linear algebra are complete, **with no license restrictions** | `Uno\deps\`: BQPD, HiGHS, MUMPS, METIS, OpenBLAS, SPRAL; `libhsl.dll` is the license-free dummy build described in Uno's official documentation |
 | End-to-end success on the MinGW side | A standalone Uno 2.9.0 program solves the test NLP correctly (`x=(1,0)`, objective `998`, the theoretical optimum, feasibility `0`); `filtersqp` takes effect and the iteration callback fires |
 | **MSVC can drive Uno** (the architectural crux) | A probe program compiled with MSVC: `LoadLibraryExW` + `GetProcAddress` all succeed, `uno version 2.9.0`, solver and model creation succeeds |
 
@@ -423,19 +422,14 @@ consume.
 
 #### 2.2 Decision: keep MSVC and call Uno through **dynamic loading**
 
-Because `libuno.dll` exports **undecorated C symbols**, the C ABI is stable across compilers, so
-SOUFFLE drives Uno with `LoadLibraryExW` + `GetProcAddress` and **links no Uno library**.
+The mechanism, and what it costs at run time, are in **1. Overall structure**: `libuno.dll` exports
+undecorated C symbols, so the C ABI is stable across compilers.
 
 **Benefits**
 
 - Boost vc143, SPICE, SNOPT and the Windows SDK are reused unchanged
 - the SNOPT comparison path stays inside the same executable
 - no MinGW toolchain in the main build
-
-**Costs**
-
-- `libuno.dll` must be located at run time (given by `SOUFFLE_UNO_ROOT`)
-- no compile-time symbol checking; start-up reports an explicit error instead
 
 #### 2.3 Code structure
 
@@ -449,15 +443,17 @@ SOUFFLE drives Uno with `LoadLibraryExW` + `GetProcAddress` and **links no Uno l
 
 #### 2.4 Environment variables
 
+The same three variables are listed for users under **Command line**; this table is the record's
+view of them.
+
 | Variable | Default | Meaning |
 |---|---|---|
 | `SOUFFLE_NLP_SOLVER` | `Uno` | picks `Uno` or `SNOPT`. **SNOPT is available only when the build enables `SOUFFLE_WITH_SNOPT=ON`**; the default build contains Uno only |
 | `SOUFFLE_UNO_ROOT` | baked in at compile time | Uno install directory (containing `bin\`, `deps\`) |
 | `SOUFFLE_UNO_PRESET` | `filtersqp` | may also be set to `ipopt` / `funnel` / `Penalty` |
 
-> ⚠️ Values of `SOUFFLE_UNO_PRESET` **must be upper case** (for instance `SILENT` for logger).
-> Lower case is silently rejected by Uno and falls back to the default, producing a
-> 22 MB / 373,772-line log and making run time I/O-bound.
+> ⚠️ Uno option values are **case-sensitive**: a lower-case value is silently rejected and falls
+> back to the default. The measured cost of that fallback is in **5. Uno interface options**.
 
 ---
 
@@ -507,7 +503,7 @@ Model size: **518 variables / 206 constraints / 4721 Jacobian nonzeros** (only 8
 | **Final mass** | **4598.48 kg** | 4438.15 kg |
 | **Electric propellant** | **706.52 kg** | 866.85 kg |
 | Launch date | 2044-02-25 | 2044-03-14 |
-| MBH budget | 5400 s | longer |
+| MBH budget | 5400 s | longer than 5400 s |
 
 **Conclusion**: with transcription, physics, initial mass, discretization and tolerances aligned,
 SOUFFLE/Uno's final mass is **160.3 kg (+3.61%)** higher than the comparable SNOPT reference:
@@ -540,18 +536,14 @@ The driver does not modify the project it drives; it overrides only the executab
 #### 4.1 Double-click = open the graphical interface
 
 **Double-click `run_souffle.bat` → PyEMTG (`EMTG Python Interface`) opens**, the same wxPython GUI
-that the SNOPT build of EMTG uses, already wired to this package's SOUFFLE solver.
-
-| I want to… | Do this |
-|---|---|
-| **Open the graphical interface** | **double-click `run_souffle.bat`** |
-| Run a case directly (no GUI) | `run_souffle.bat EVVEU_LTGA.emtgopt` |
+that the SNOPT build of EMTG uses, already wired to this package's SOUFFLE solver. The two ways to
+start it are in **Installation** above.
 
 Measured (clean environment: system `PATH` only, all `SOUFFLE_*` and `SNOPT_LICENSE` cleared):
 
 ```
 [SOUFFLE] starting the PyEMTG graphical interface ...
-[SOUFFLE] solver : ...\Souffle\bin\EMTGv9.exe
+[SOUFFLE] solver : ...\Souffle\bin\SOUFFLE.exe
 GUI window found after 2 s: hwnd=8914012 title='EMTG Python Interface'
 RESULT : GUI opened and closed cleanly
 ```
@@ -568,7 +560,7 @@ by the launcher).
 
 ```
 Souffle\
-├── bin\                        EMTGv9.exe (SOUFFLE) + runtime DLLs + default.emtgopt
+├── bin\                        SOUFFLE.exe + runtime DLLs + default.emtgopt
 ├── python\                     bundled Python 3.13 + wxPython/numpy/scipy/matplotlib/astropy/spiceypy
 ├── PyEMTG\                     the PyEMTG graphical interface
 ├── Uno\bin, Uno\deps\          the Uno solver and its dependencies (SOUFFLE_UNO_ROOT points here)
@@ -591,14 +583,11 @@ SNOPT and a license yourself.
 
 #### 4.4 Packaging
 
-```powershell
-powershell -File package\package_souffle.ps1 -Force
-```
-
-Script flow: executable → Uno runtime → full `Universe` → `HardwareModels` → cases (paths
-redirected) → bundled Python + PyEMTG → licenses. It also self-checks that every target in
-`PyEMTG.options` exists and that no `.emtgopt` inside the package contains a machine-specific
-absolute path. `-SkipGUI` produces a slim package without the GUI (direct-run mode only).
+A release contains the executable, the Uno runtime, the full `Universe` and
+`HardwareModels` trees, the example cases with their paths redirected into the package, a
+bundled Python with PyEMTG, and the licenses. Packaging also checks that every target named
+in `PyEMTG.options` exists and that no `.emtgopt` inside the package contains a
+machine-specific absolute path.
 
 ---
 

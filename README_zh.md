@@ -35,13 +35,9 @@ SOUFFLE 去掉这个依赖：EMTG 的物理模型、转录方式和任务定义�
   因此 SOUFFLE 用 `LoadLibraryExW` + `GetProcAddress` 调用它；构建时只需要 `Uno_C_API.h`。
 - **Ipopt 作为第二种内层求解器** —— 正常链接，因为它的导入库是 MSVC 可用的 COFF 归档。
   用 `SOUFFLE_NLP_SOLVER=IPOPT` 选择。
-- **联合寻优** —— 冷启动的 Uno 与 Ipopt 会落在**不同盆地**，因此 `united/` 把两者（外加一个
-  用 Uno 解热启动的 Ipopt）作为**独立进程**同时跑，取最优解。四个任务族、130 个算例实测：
-  末质量平均比"Uno 与冷 Ipopt 各自取优"再多约 **19 kg**，比 Uno 单独多约 **87 kg**。
-  它同时**比 SNOPT 版快得多**：单次求解上限从 60 s 降到 15 s / 8 s，一次运行约 62 s，
-  而出厂算例设置最长 900 s。并行那一路还**不额外花时间**：Uno 要 62 s、Ipopt 要 33 s，
-  但一起跑仍是 62 s（Ipopt 跑在 Uno 后面）。必须使用独立进程而非同进程：两个求解器各自携带
-  **同名但不同工具链编译的 MinGW 运行时**，而 Windows 按名字解析 DLL。
+- **联合寻优** —— `united/` 把 Uno 与 Ipopt（外加一个用 Uno 解热启动的 Ipopt）作为**独立进程**
+  同时跑，取最优解。末质量实测收益、为什么必须使用独立进程、以及为什么比出厂算例默认设置快得多，
+  见 **8. 联合寻优**。
 - **同一个图形界面** —— PyEMTG 可编辑并运行 `.emtgopt`、绘制 `.emtg` 结果，与 SNOPT 版一致。
 - **同一套物理模型** —— MGALT、前向/后向打靶、匹配点约束、journey/phase 树、
   Monotonic Basin Hopping 全局搜索，全部原样保留。
@@ -74,7 +70,7 @@ cmake -S . -B build -G 'NMake Makefiles' -DCMAKE_BUILD_TYPE=Release `
     -DSOUFFLE_UNO_ROOT=<Uno 路径> `
     -DSOUFFLE_DEFAULT_SOLVER=Uno `
     -DBOOST_ROOT=<Boost 路径>
-cmake --build build          # 产物: build\src\EMTGv9.exe
+cmake --build build          # 产物: build\src\SOUFFLE.exe
 ```
 
 该构建不涉及任何 SNOPT 目录、头文件或库。
@@ -100,7 +96,7 @@ cmake --build build          # 产物: build\src\EMTGv9.exe
 ```bat
 set SOUFFLE_NLP_SOLVER=Uno
 set SOUFFLE_UNO_ROOT=<Uno 路径>
-EMTGv9.exe my_case.emtgopt
+SOUFFLE.exe my_case.emtgopt
 ```
 
 | 环境变量 | 默认 | 含义 |
@@ -113,7 +109,7 @@ EMTGv9.exe my_case.emtgopt
 
 ```bat
 set SOUFFLE_UNO_PRESET=ipopt
-EMTGv9.exe my_case.emtgopt
+SOUFFLE.exe my_case.emtgopt
 ```
 
 ---
@@ -122,11 +118,10 @@ EMTGv9.exe my_case.emtgopt
 
 ## 设计
 
-求解器接入 EMTG 的方式：动态加载层、求解器接口与 EMTG 数据结构之间的映射、回调与终止条件的
-处理，以及经实测确认的关键约束。
+本部分说明求解器如何接入 EMTG：动态加载层、求解器接口与 EMTG 数据结构之间的映射、回调与终止
+条件的处理，以及经实测确认的接口约束。
 
 ---
-
 
 ### 1. 总体结构
 
@@ -300,15 +295,25 @@ Uno 与 Ipopt 各自携带**同名但不同工具链编译的 MinGW 运行时**
 | `parallel` | Uno ‖ 独立 Ipopt → 取优 | ≈ 62 s |
 | `both`（默认） | 上面两路，再以 **Uno 的解**热启动一次 Ipopt → 三者取优 | ≈ 100 s |
 
-默认取 `both`：冷启动的 Ipopt 与热启动的 Ipopt **落在不同盆地**，三者取优相对
-`max(Uno, 独立 Ipopt)` 平均多拿约 **19 kg**，代价只是多串一段 Ipopt。
+默认取 `both`：130 个算例的实测中，三者取优相对 `max(Uno, 独立 Ipopt)` 平均多拿约 **19 kg**，
+代价只是多串一段 Ipopt（数据表见 §8.6）。
 
 #### 8.3 墙钟由单次求解上限决定
 
 墙钟 ≈ `max(MBH 预算, 单次求解上限)`，因为 MBH 打断不了进行中的求解。真正的旋钮是
-**单次求解上限**，不是总预算。
+**单次求解上限**，不是总预算：出厂算例在 `MBH_max_run_time 900` 的预算下把该上限留在
+`snopt_max_run_time 60`，一次运行最长可达 900 s；联合寻优则把它降到 Uno 15 s、Ipopt 8 s。
 
-#### 8.4 一个二进制、两种求解器
+#### 8.4 与出厂默认设置的提速对比
+
+正是这两个上限换来了速度：联合寻优一个任务用时是 §8.2 里的 ≈ 62 s（`parallel`）或
+≈ 100 s（`both`），而出厂默认最长 900 s —— 约**快 9–14 倍**，且末质量还更好。
+
+时间花在单次求解上限上：把它留在 120 s 时，实测 Ipopt 跑了 11,847 次迭代，而其中 1,352 次
+就已经得到完全相同的解。并行那一路则**不额外花时间**：Uno 要 62 s、Ipopt 要 33 s，
+但一起跑仍是 62 s，因为 Ipopt 跑完就藏在 Uno 后面。
+
+#### 8.5 一个二进制、两种求解器
 
 发行包只带一个 `SOUFFLE.exe`。`united.py` 通过 `SOUFFLE_NLP_SOLVER` 决定每一路跑哪个求解器，
 `SOUFFLE_IPOPT_LIB` 指向 `ipopt-3.dll` 所在目录。算例里的数据路径由 `geometry.py`
@@ -317,10 +322,7 @@ Uno 与 Ipopt 各自携带**同名但不同工具链编译的 MinGW 运行时**
 
 ---
 
-
-SOUFFLE 带**两个求解器**（Uno 与 Ipopt）。它们**不能同进程运行**：两者各自携带同名但不同工具链编译的 MinGW 运行时，Windows 按名字解析 DLL，后加载的一方会以 `0xc06d007f` 失败。因此联合寻优把两者作为**独立进程**编排。
-
-#### 8.5 为什么取三者之优
+#### 8.6 为什么取三者之优
 
 四族任务、共 130 个算例，与 SNOPT 基准的差值（末质量，kg）：
 
@@ -333,14 +335,17 @@ SOUFFLE 带**两个求解器**（Uno 与 Ipopt）。它们**不能同进程运�
 | `max(Uno, 热 Ipopt)` | +42.77 | +81.71 |
 | **`max(三者)`** | **+76.76** | **+121.41** |
 
+相对 Uno 单独，`max(三者)` 平均多拿约 **87 kg** 末质量（平均 `+121.41 kg` 对 `+34.07 kg`）。
+
 两个结论：
 
 - **冷启动的 Ipopt 优于热启动的 Ipopt**，所以热启动**不能替代**独立跑一路；
 - 两者**落在不同盆地**，因此同时保留才是最划算的。
 
-因此"只在有把握时才跑 Ipopt"并不可取：那个判据恰好会跳掉真正带来收益的那些求解。
+因此"只在有把握时才跑 Ipopt"——即只在看起来有希望出解的那些算例上跑——并不可取：
+那个判据恰好会跳掉真正带来收益的那些求解。
 
-#### 8.6 实测一次（发行包、`--mode parallel`）
+#### 8.7 实测一次（发行包、`--mode parallel`）
 
 ```
 完成 1 个，出解 1 个，总用时 69 s
@@ -354,10 +359,7 @@ SOUFFLE 带**两个求解器**（Uno 与 Ipopt）。它们**不能同进程运�
 
 ## 开发与验证记录
 
-SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Mission Trajectory Generator），
-把内层非线性优化器 **SNOPT** 替换为开源求解器 **[Uno](https://github.com/cvanaret/Uno)**，
-以便在 SNOPT 试用许可到期后继续使用。
-
+本部分是"设计"部分的依据记录：可行性、工具链决策、实测数据，以及发行包。
 
 ### 1. 可行性依据
 
@@ -368,7 +370,7 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 | **有对应 SNOPT 语义的 preset** | `filtersqp`（"TR Fletcher-filter restoration inequality-constrained **SQP** method"）；另有 `ipopt`、`funnel`、`Penalty` |
 | **有对应 EMTG chaperone 的回调** | `uno_set_solver_callbacks(...)`：每轮迭代可得 primal、可行性、稳定性、互补性残差 |
 | 不需要 Hessian（EMTG 不提供） | 实测 Uno 自动回退：`An exact Hessian was not provided, setting an L-LBFGS Hessian instead` |
-| 子问题求解器与线性代数齐备，**无许可限制** | `Uno\deps\`：BQPD、HiGHS、MUMPS、METIS、OpenBLAS、SPRAL；`libhsl.dll` 是官方文档所述的免授权 dummy 版 |
+| 子问题求解器与线性代数齐备，**无许可限制** | `Uno\deps\`：BQPD、HiGHS、MUMPS、METIS、OpenBLAS、SPRAL；`libhsl.dll` 是 Uno 官方文档所述的免授权 dummy 版 |
 | MinGW 侧端到端跑通 | 一个独立的 Uno 2.9.0 程序正确解出测试 NLP（`x=(1,0)`、目标 `998` 即理论最优、可行性 `0`）；`filtersqp` 生效，迭代回调触发 |
 | **MSVC 可驱动 Uno**（架构关键） | 一个用 MSVC 编译的探针程序：`LoadLibraryExW` + `GetProcAddress` 全部成功，`uno version 2.9.0`，solver/model 创建成功 |
 
@@ -389,19 +391,13 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 
 #### 2.2 决策：保持 MSVC，通过**动态加载**调用 Uno
 
-由于 `libuno.dll` 导出的是**未修饰 C 符号**，C ABI 跨编译器稳定，因此用
-`LoadLibraryExW` + `GetProcAddress` 驱动 Uno，**不链接任何 Uno 库**。
+机理与运行时的代价见 **1. 总体结构**：`libuno.dll` 导出的是未修饰 C 符号，C ABI 跨编译器稳定。
 
 **收益**
 
 - Boost vc143、SPICE、SNOPT、Windows SDK 全部沿用不变
 - 同一个可执行文件内保留 SNOPT 对照路径
 - 主构建不需要 MinGW 工具链
-
-**代价**
-
-- 需要在运行时定位 `libuno.dll`（由 `SOUFFLE_UNO_ROOT` 指定）
-- 缺少编译期符号校验，改由启动时的显式报错兜底
 
 #### 2.3 代码结构
 
@@ -415,14 +411,16 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 
 #### 2.4 环境变量
 
+同样的三个变量在 **命令行** 一节已面向使用者列出；本表是记录视角的版本。
+
 | 变量 | 默认 | 说明 |
 |---|---|---|
 | `SOUFFLE_NLP_SOLVER` | `Uno` | 选 `Uno` 或 `SNOPT`。**SNOPT 仅在编译时开启 `SOUFFLE_WITH_SNOPT=ON` 才可用**；默认构建只含 Uno |
 | `SOUFFLE_UNO_ROOT` | 编译期内置 | Uno 安装目录（含 `bin\`、`deps\`） |
 | `SOUFFLE_UNO_PRESET` | `filtersqp` | 也可设 `ipopt` / `funnel` / `Penalty` |
 
-> ⚠️ `SOUFFLE_UNO_PRESET` 的值**必须大写**（例如 logger 用 `SILENT`）。
-> 小写会被 Uno 静默拒绝并回退默认，产生 22 MB / 373,772 行日志、运行时间被 I/O 主导。
+> ⚠️ Uno 选项的取值**区分大小写**：小写会被静默拒绝并回退默认。
+> 该回退的实测代价见 **5. Uno 接口选项**。
 
 ---
 
@@ -468,7 +466,7 @@ SQP/filter 对不可行初始点更鲁棒，且与 EMTG 的解析梯度、稀疏
 | **末质量** | **4598.48 kg** | 4438.15 kg |
 | **电推进剂** | **706.52 kg** | 866.85 kg |
 | 发射日 | 2044-02-25 | 2044-03-14 |
-| MBH 预算 | 5400 s | 更长 |
+| MBH 预算 | 5400 s | 长于 5400 s |
 
 **结论**：在转录、物理模型、初始质量、离散化、容差全部对齐的条件下，SOUFFLE/Uno 的末质量比
 同档 SNOPT 基准高 **160.3 kg（+3.61%）**：本算例中 SOUFFLE 能找到比 SNOPT 更优的解。
@@ -501,17 +499,13 @@ SQP/filter 对不可行初始点更鲁棒，且与 EMTG 的解析梯度、稀疏
 
 **双击 `run_souffle.bat` → 打开 PyEMTG（`EMTG Python Interface`）**，
 即 SNOPT 版 EMTG 使用的同一个 wxPython 图形界面，已接好本包的 SOUFFLE 求解器。
-
-| 我要… | 操作 |
-|---|---|
-| **打开图形界面** | **双击 `run_souffle.bat`** |
-| 直接跑算例（无界面） | `run_souffle.bat EVVEU_LTGA.emtgopt` |
+两种启动方式见上文 **安装** 一节。
 
 实测（干净环境：仅系统 `PATH`，清除全部 `SOUFFLE_*` 与 `SNOPT_LICENSE`）：
 
 ```
 [SOUFFLE] starting the PyEMTG graphical interface ...
-[SOUFFLE] solver : ...\Souffle\bin\EMTGv9.exe
+[SOUFFLE] solver : ...\Souffle\bin\SOUFFLE.exe
 GUI window found after 2 s: hwnd=8914012 title='EMTG Python Interface'
 RESULT : GUI opened and closed cleanly
 ```
@@ -527,7 +521,7 @@ GUI 需要**绝对路径**（`PyEMTG.options`），而包要能整体搬走。�
 
 ```
 Souffle\
-├── bin\                        EMTGv9.exe (SOUFFLE) + 运行时 DLL + default.emtgopt
+├── bin\                        SOUFFLE.exe + 运行时 DLL + default.emtgopt
 ├── python\                     自带 Python 3.13 + wxPython/numpy/scipy/matplotlib/astropy/spiceypy
 ├── PyEMTG\                     PyEMTG 图形界面
 ├── Uno\bin, Uno\deps\          Uno 求解器及其依赖（SOUFFLE_UNO_ROOT 指向此处）
@@ -549,13 +543,9 @@ Souffle\
 
 #### 4.4 打包
 
-```powershell
-powershell -File package\package_souffle.ps1 -Force
-```
-
-脚本流程：可执行文件 → Uno 运行时 → 完整 `Universe` → `HardwareModels` → 算例（路径重定向）
-→ 自带 Python + PyEMTG → 许可。并自检 `PyEMTG.options` 全部目标存在、包内 `.emtgopt`
-无机器相关绝对路径。`-SkipGUI` 可产出不含 GUI 的精简包（仅直接运行模式）。
+一个发行包含：可执行文件、Uno 运行时、完整的 `Universe` 与 `HardwareModels`、算例（路径重定向到
+包内）、自带的 Python 与 PyEMTG，以及许可证。打包时自检 `PyEMTG.options` 里的每个目标都存在，
+且包内 `.emtgopt` 不含机器相关的绝对路径。
 
 ---
 
