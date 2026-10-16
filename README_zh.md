@@ -349,15 +349,9 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 把内层非线性优化器从 **SNOPT** 换成开源求解器 **[Uno](https://github.com/cvanaret/Uno)**，
 以便在 SNOPT 试用许可到期后继续使用。
 
-### 1. 任务目标（Definition of Done）
 
-1. `Souffle_Cheese\build\src\EMTGv9.exe` 能用 **Uno** 求解器跑通 EVVEU LTGA 用例
-2. 原 `EMTG\` 目录**逐字节与基线一致**
-3. 发行包在新机器上解压后**双击即用**：不装编译器、不设环境变量、不改 `PATH`
 
----
-
-### 2. 可行性依据
+### 1. 可行性依据
 
 | 结论 | 证据 |
 |---|---|
@@ -372,9 +366,9 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 
 ---
 
-### 3. 工具链与架构决策
+### 2. 工具链与架构决策
 
-#### 3.1 工具链事实
+#### 2.1 工具链事实
 
 **原版 EMTG 是用 MSVC + NMake 构建的**，不是 MinGW：
 
@@ -386,7 +380,7 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 
 而 **Uno 的 Windows 预编译包是 MinGW 格式**（`libuno.dll.a`），MSVC 链接器无法直接链接。
 
-#### 3.2 决策：保持 MSVC，通过**动态加载**调用 Uno
+#### 2.2 决策：保持 MSVC，通过**动态加载**调用 Uno
 
 由于 `libuno.dll` 导出的是**未修饰 C 符号**，C ABI 跨编译器稳定，因此用
 `LoadLibraryExW` + `GetProcAddress` 驱动 Uno，**不链接任何 Uno 库**。
@@ -402,7 +396,7 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 - 需要在运行时定位 `libuno.dll`（由 `SOUFFLE_UNO_ROOT` 指定）
 - 缺少编译期符号校验，靠启动时的显式报错兜底
 
-#### 3.3 代码结构
+#### 2.3 代码结构
 
 | 文件 | 作用 |
 |---|---|
@@ -412,7 +406,7 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 | `src\InnerLoop\NLP_solver_factory.h/.cpp` | 工厂：按 `SOUFFLE_NLP_SOLVER` 返回 `std::unique_ptr<NLP_interface>` |
 | `src\InnerLoop\NLPoptions.h/.cpp` | 新增 `solver_name`，默认值来自 CMake |
 
-#### 3.4 环境变量
+#### 2.4 环境变量
 
 | 变量 | 默认 | 说明 |
 |---|---|---|
@@ -425,9 +419,9 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 
 ---
 
-### 4. 验证结果
+### 3. 验证结果
 
-#### 4.1 求解器 preset A/B 实测
+#### 3.1 求解器 preset A/B 实测
 
 | preset | 收敛率 | 可行解 |
 |---|---|---|
@@ -440,7 +434,7 @@ Uno的IPOPT预设是指使用IPOPT相同的算法下进行优化，与原生IPOP
 
 其原因可能是IPOPT在序列固定、变量少、内点法在初始可行时才有很好的性能，但LTGA广泛寻优不具备这类条件。而SQP/filter 对不可行初始点更鲁棒，且和 EMTG 的解析梯度、稀疏结构天然匹配。
 
-#### 4.2 与 SNOPT 的同口径对比（2044 窗口，E-V-V-E-U）
+#### 3.2 与 SNOPT 的同口径对比（2044 窗口，E-V-V-E-U）
 
 **必须所有设置对齐才可比。**
 
@@ -471,7 +465,7 @@ Uno的IPOPT预设是指使用IPOPT相同的算法下进行优化，与原生IPOP
 **结论（谨慎）**：在转录、物理模型、初始质量、离散化、容差全部对齐的条件下，
 SOUFFLE/Uno 的末质量比同档 SNOPT 基准高 **160.3 kg（+3.61%）**，证明SOUFFLE有时能找到比SNOPT更优的解。
 
-#### 4.3 ESFO_Uranus 天王星行星际转移序列二次高精度广泛寻优实测（真实工程流水线）
+#### 3.3 ESFO_Uranus 天王星行星际转移序列二次高精度广泛寻优实测（真实工程流水线）
 
 用 ESFO_Uranus **自己的**二级流水线（`code\emtg_pipeline.py`）、**自己的** case 定义
 （`emtg\tier2_plan_2044_window.json`：2044 窗口，`t0=16144.5`，`tofs=[150,380,52,1610]`，
@@ -492,9 +486,9 @@ TOF 区间 [2136.7, 2374.1]），仅把 `config.EMTG_BIN` 在内存中指向 SOU
 
 ---
 
-### 5. 发行包 `Souffle\`
+### 4. 发行包 `Souffle\`
 
-#### 5.1 双击 = 打开图形界面
+#### 4.1 双击 = 打开图形界面
 
 **双击 `run_souffle.bat` → 打开 PyEMTG（`EMTG Python Interface`）**，
 即 SNOPT 版 EMTG 使用的同一个 wxPython 图形界面，已接好本包的 SOUFFLE 求解器。
@@ -513,14 +507,14 @@ GUI window found after 2 s: hwnd=8914012 title='EMTG Python Interface'
 RESULT : GUI opened and closed cleanly
 ```
 
-#### 5.2 可搬迁设计
+#### 4.2 可搬迁设计
 
 GUI 需要**绝对路径**（`PyEMTG.options`），而包要能整体搬走——两者本质冲突。
 解法：**启动器每次启动时按自身位置重新生成 `PyEMTG.options`**。
 包内 `.emtgopt` 则全部使用相对路径（`../Universe_EVVEU`、`../HardwareModels/`、`../results`），
 由 EMTG 按其工作目录解析（启动器以 `bin\` 为工作目录）。
 
-#### 5.3 目录结构
+#### 4.3 目录结构
 
 ```
 Souffle\
@@ -545,7 +539,7 @@ Souffle\
 因此既不需要 SNOPT 安装，也不需要许可证。
 开启 `SOUFFLE_WITH_SNOPT=ON` 才会恢复 SNOPT 对照路径，那时才需要自备 SNOPT 与许可证。
 
-#### 5.4 打包
+#### 4.4 打包
 
 ```powershell
 powershell -File package\package_souffle.ps1 -Force
@@ -557,34 +551,7 @@ powershell -File package\package_souffle.ps1 -Force
 
 ---
 
-### 6. 命名迁移记录
-
-项目原名 UnoMTG / Uno_EMTG，已全量迁移为 SOUFFLE / Souffle。
-
-| 项 | 迁移前 | 迁移后 |
-|---|---|---|
-| 环境变量 | `UNOMTG_*` | **`SOUFFLE_*`** |
-| 接口类 | `Uno_interface` / `UnoApi` | **`Souffle_interface` / `SouffleApi`** |
-| 源文件 | `Uno_interface.*` / `UnoApi.*` | **`Souffle_interface.*` / `SouffleApi.*`** |
-| 启动器 | `run_uno_emtg.bat` | **`run_souffle.bat`** |
-| 日志前缀 | `UnoMTG: building model` | **`SOUFFLE: building model`** |
-| CMake 选项 | `UNOMTG_WITH_UNO` 等 | **`SOUFFLE_WITH_UNO` 等** |
-
-迁移后重新编译通过（`[100%] Built target EMTGv9`，0 个 C/LNK 错误），
-并实测 `SOUFFLE_NLP_SOLVER=Uno` + `SOUFFLE_UNO_ROOT` 能正常求解。
-
-**未随迁移改动的**（刻意保留）：
-
-- `src\InnerLoop\monotonic_basin_hopping.*` 中的成员名 `mySNOPT`、字符串
-  `"SNOPT has crashed ... Creating dumpfile."`、文件名 `.SNOPTcrash`
-  —— 这是 EMTG 原有的 MBH **try-catch 兜底分支**，触发条件是**求解抛异常**（与用哪个求解器无关）。
-  改动会影响 ESFO_Uranus 的归档/扫描逻辑，故保留。
-      > 探测阶段（宽松时间 + 无种子）首轮 NLP 发散会触发它并留下 .SNOPTcrash 文件。
-      > 该文件与求解器选择无关。
-
----
-
-### 7. 已知问题与注意事项
+### 5. 已知问题与注意事项
 
 | 问题 | 说明 |
 |---|---|
@@ -597,11 +564,11 @@ powershell -File package\package_souffle.ps1 -Force
 
 ---
 
-### 8. 联合寻优实测
+### 6. 联合寻优实测
 
 SOUFFLE 现在带**两个求解器**（Uno 与 Ipopt）。它们**不能同进程运行**：两者各自携带同名但不同工具链编译的 MinGW 运行时，Windows 按名字解析 DLL，后加载的一方会以 `0xc06d007f` 失败。因此联合寻优把两者作为**独立进程**编排。
 
-#### 8.1 为什么取三者之优
+#### 6.1 为什么取三者之优
 
 四族任务、共 130 个算例，与 SNOPT 基准的差值（末质量，kg）：
 
@@ -621,7 +588,7 @@ SOUFFLE 现在带**两个求解器**（Uno 与 Ipopt）。它们**不能同进�
 
 这不支持早期"只在有把握时才跑 Ipopt"的思路——那个判据恰好会跳掉真正带来收益的那些求解。
 
-#### 8.2 实测一次（发行包、`--mode parallel`）
+#### 6.2 实测一次（发行包、`--mode parallel`）
 
 ```
 完成 1 个，出解 1 个，总用时 69 s
