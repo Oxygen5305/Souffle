@@ -188,4 +188,4 @@ dumpbin /imports build\src\SOUFFLE.exe | findstr /I snopt
 | `0xC0000135` at startup | a hard-imported DLL is missing. With `SOUFFLE_WITH_SNOPT=OFF` this should not be `snopt7.dll` |
 | `failed to load libuno.dll` | `SOUFFLE_UNO_ROOT` is wrong or unset |
 | Huge log files | `SOUFFLE_UNO_PRESET`-related Uno options are case-sensitive; use uppercase |
-| Solver returns after 1 iteration | a termination callback is registered with Uno. SOUFFLE deliberately passes `nullptr` — see `docs/DESIGN.md` §5.1 |
+| Solver returns after 1 iteration | a termination callback is registered with Uno. SOUFFLE deliberately passes `nullptr` — see `README_zh.md` §5.1 |

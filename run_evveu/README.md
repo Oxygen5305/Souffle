@@ -6,7 +6,7 @@ Example `.emtgopt` cases for an Earth–Venus–Venus–Earth–Uranus low-thrus
 |---|---|
 | `EVVEU_LTGA_run.emtgopt` | the standard example: 40 steps, 1800 s of MBH |
 | `MINI_LTGA_smoke.emtgopt` | a quick check that the install works — 2 steps, finishes in well under a minute |
-| `RETRY_t40_aligned.emtgopt` | the matched-discretisation baseline (40 steps, SNOPT's tolerances) used for the comparison in [`../docs/DEVELOPMENT.md`](../docs/DEVELOPMENT.md) |
+| `RETRY_t40_aligned.emtgopt` | the matched-discretisation baseline (40 steps, SNOPT's tolerances) used for the comparison in [`../README_zh.md`](../README_zh.md) |
 
 ## Before running
 

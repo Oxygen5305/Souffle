@@ -29,7 +29,6 @@ EMTG 的**可编辑副本**，也是唯一允许修改的 EMTG 源码树。
 | `united\` | **联合寻优**：Uno 与 Ipopt 的多进程路由与取优。用法见 `united\README.md` |
 | `bin\` | 构建产物 + `archive\` 存放历史实验件 |
 | `build_cheese\` `build_ipopt\` | 两个构建树，各自对应一个目标 |
-| `docs\` | `DESIGN.md`（设计）、`DEVELOPMENT.md`（开发记录）、Uno 选项表 |
 | `SOUFFLE_PATCHES.md` | 补丁清单、实测结果、失败尝试记录 |
 
 ## 构建

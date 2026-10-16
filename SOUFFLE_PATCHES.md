@@ -315,7 +315,7 @@ them.
 | D10 | `FilamentFinder` mode leaves the critical-inequality Jacobian rows at zero | that solver mode is not used by this project (`NLP_solver_mode 1`) |
 | D11 | single-slot evaluation cache can force redundant evaluations | performance only; measure with the bound-but-unused evaluation counters first |
 
-Also worth knowing: `this repository/docs/DEVELOPMENT.md` §7 documents the Uno status codes
+Also worth knowing: `README_zh.md` §7 documents the Uno status codes
 incorrectly. The real v2.9.0 enum is
 `0 SUCCESS, 1 ITERATION_LIMIT, 2 TIME_LIMIT, 3 EVALUATION_ERROR, 4 ALGORITHMIC_ERROR,
 5 USER_TERMINATION` — so the earlier "111/138 UNO_SUCCESS" A/B figure counted time-limit
