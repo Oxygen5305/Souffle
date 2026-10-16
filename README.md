@@ -140,7 +140,6 @@ confirmed by measurement.
 ---
 
 
-
 ### 1. Overall structure
 
 ```
@@ -344,13 +343,53 @@ relative to `bin/`.
 
 ---
 
+
+SOUFFLE carries **two solvers** (Uno and Ipopt). They **cannot run in the same process**: each
+ships same-named MinGW runtimes built by different toolchains, Windows resolves DLLs by name, and
+the second-loaded side fails with `0xc06d007f`. Union search therefore orchestrates both as
+**separate processes**.
+
+#### 8.5 Why take the best of three
+
+Across four mission families and 130 cases in total, differences from the SNOPT reference (final
+mass, kg):
+
+| Orchestration | Median | Mean |
+|---|---|---|
+| Uno alone | −4.57 | +34.07 |
+| Ipopt alone (cold start) | **+11.22** | **+65.64** |
+| Ipopt alone (warm-started from Uno's solution) | +4.36 | +47.67 |
+| `max(Uno, cold Ipopt)` | +40.90 | +102.46 |
+| `max(Uno, warm Ipopt)` | +42.77 | +81.71 |
+| **`max(three)`** | **+76.76** | **+121.41** |
+
+Two conclusions:
+
+- **A cold-started Ipopt beats a warm-started Ipopt**, so a warm start **cannot replace** an
+  independent leg;
+- the two **land in different basins**, so keeping both is what pays off.
+
+Running Ipopt only "when confident" is therefore counterproductive: that criterion would skip
+exactly the solves that bring the real gains.
+
+#### 8.6 One measured run (release package, `--mode parallel`)
+
+```
+Completed 1, produced 1 solution, total time 69 s
+best-source distribution: {'uno': 1}
+final mass 4698.394 kg   wall clock 69.1 s
+  uno    ok  wall_s=69.1   SOUFFLE[solve]: preset=filtersqp opt_status=2 sol_status=0 iters=5721
+  ipopt  ok  wall_s=36.7   SOUFFLE[ipopt-solve]: status=0 inform=1 iters=781 callbacks=782
+```
+
+---
+
 ## Development and verification record
 
 SOUFFLE is based on NASA's [EMTG](https://github.com/nasa/EMTG) (Evolutionary Mission Trajectory
 Generator). It replaces the inner-loop nonlinear optimizer, **SNOPT**, with the open-source solver
 **[Uno](https://github.com/cvanaret/Uno)**, so the tool remains usable after an SNOPT evaluation
 license expires.
-
 
 
 ### 1. Feasibility
@@ -560,48 +599,6 @@ Script flow: executable → Uno runtime → full `Universe` → `HardwareModels`
 redirected) → bundled Python + PyEMTG → licenses. It also self-checks that every target in
 `PyEMTG.options` exists and that no `.emtgopt` inside the package contains a machine-specific
 absolute path. `-SkipGUI` produces a slim package without the GUI (direct-run mode only).
-
----
-
-### 5. Union search measurements
-
-SOUFFLE carries **two solvers** (Uno and Ipopt). They **cannot run in the same process**: each
-ships same-named MinGW runtimes built by different toolchains, Windows resolves DLLs by name, and
-the second-loaded side fails with `0xc06d007f`. Union search therefore orchestrates both as
-**separate processes**.
-
-#### 5.1 Why take the best of three
-
-Across four mission families and 130 cases in total, differences from the SNOPT reference (final
-mass, kg):
-
-| Orchestration | Median | Mean |
-|---|---|---|
-| Uno alone | −4.57 | +34.07 |
-| Ipopt alone (cold start) | **+11.22** | **+65.64** |
-| Ipopt alone (warm-started from Uno's solution) | +4.36 | +47.67 |
-| `max(Uno, cold Ipopt)` | +40.90 | +102.46 |
-| `max(Uno, warm Ipopt)` | +42.77 | +81.71 |
-| **`max(three)`** | **+76.76** | **+121.41** |
-
-Two conclusions:
-
-- **A cold-started Ipopt beats a warm-started Ipopt**, so a warm start **cannot replace** an
-  independent leg;
-- the two **land in different basins**, so keeping both is what pays off.
-
-Running Ipopt only "when confident" is therefore counterproductive: that criterion would skip
-exactly the solves that bring the real gains.
-
-#### 5.2 One measured run (release package, `--mode parallel`)
-
-```
-Completed 1, produced 1 solution, total time 69 s
-best-source distribution: {'uno': 1}
-final mass 4698.394 kg   wall clock 69.1 s
-  uno    ok  wall_s=69.1   SOUFFLE[solve]: preset=filtersqp opt_status=2 sol_status=0 iters=5721
-  ipopt  ok  wall_s=36.7   SOUFFLE[ipopt-solve]: status=0 inform=1 iters=781 callbacks=782
-```
 
 ---
 

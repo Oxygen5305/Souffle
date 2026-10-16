@@ -128,7 +128,6 @@ EMTGv9.exe my_case.emtgopt
 ---
 
 
-
 ### 1. 总体结构
 
 ```
@@ -318,12 +317,46 @@ Uno 与 Ipopt 各自携带**同名但不同工具链编译的 MinGW 运行时**
 
 ---
 
+
+SOUFFLE 带**两个求解器**（Uno 与 Ipopt）。它们**不能同进程运行**：两者各自携带同名但不同工具链编译的 MinGW 运行时，Windows 按名字解析 DLL，后加载的一方会以 `0xc06d007f` 失败。因此联合寻优把两者作为**独立进程**编排。
+
+#### 8.5 为什么取三者之优
+
+四族任务、共 130 个算例，与 SNOPT 基准的差值（末质量，kg）：
+
+| 编排 | 中位 | 平均 |
+|---|---|---|
+| Uno 单独 | −4.57 | +34.07 |
+| Ipopt 单独（冷启动） | **+11.22** | **+65.64** |
+| Ipopt 单独（以 Uno 的解热启动） | +4.36 | +47.67 |
+| `max(Uno, 冷 Ipopt)` | +40.90 | +102.46 |
+| `max(Uno, 热 Ipopt)` | +42.77 | +81.71 |
+| **`max(三者)`** | **+76.76** | **+121.41** |
+
+两个结论：
+
+- **冷启动的 Ipopt 优于热启动的 Ipopt**，所以热启动**不能替代**独立跑一路；
+- 两者**落在不同盆地**，因此同时保留才是最划算的。
+
+因此"只在有把握时才跑 Ipopt"并不可取：那个判据恰好会跳掉真正带来收益的那些求解。
+
+#### 8.6 实测一次（发行包、`--mode parallel`）
+
+```
+完成 1 个，出解 1 个，总用时 69 s
+取优来源分布: {'uno': 1}
+末质量 4698.394 kg   墙钟 69.1 s
+  uno    ok  wall_s=69.1   SOUFFLE[solve]: preset=filtersqp opt_status=2 sol_status=0 iters=5721
+  ipopt  ok  wall_s=36.7   SOUFFLE[ipopt-solve]: status=0 inform=1 iters=781 callbacks=782
+```
+
+---
+
 ## 开发与验证记录
 
 SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Mission Trajectory Generator），
 把内层非线性优化器 **SNOPT** 替换为开源求解器 **[Uno](https://github.com/cvanaret/Uno)**，
 以便在 SNOPT 试用许可到期后继续使用。
-
 
 
 ### 1. 可行性依据
@@ -523,42 +556,6 @@ powershell -File package\package_souffle.ps1 -Force
 脚本流程：可执行文件 → Uno 运行时 → 完整 `Universe` → `HardwareModels` → 算例（路径重定向）
 → 自带 Python + PyEMTG → 许可。并自检 `PyEMTG.options` 全部目标存在、包内 `.emtgopt`
 无机器相关绝对路径。`-SkipGUI` 可产出不含 GUI 的精简包（仅直接运行模式）。
-
----
-
-### 5. 联合寻优实测
-
-SOUFFLE 带**两个求解器**（Uno 与 Ipopt）。它们**不能同进程运行**：两者各自携带同名但不同工具链编译的 MinGW 运行时，Windows 按名字解析 DLL，后加载的一方会以 `0xc06d007f` 失败。因此联合寻优把两者作为**独立进程**编排。
-
-#### 5.1 为什么取三者之优
-
-四族任务、共 130 个算例，与 SNOPT 基准的差值（末质量，kg）：
-
-| 编排 | 中位 | 平均 |
-|---|---|---|
-| Uno 单独 | −4.57 | +34.07 |
-| Ipopt 单独（冷启动） | **+11.22** | **+65.64** |
-| Ipopt 单独（以 Uno 的解热启动） | +4.36 | +47.67 |
-| `max(Uno, 冷 Ipopt)` | +40.90 | +102.46 |
-| `max(Uno, 热 Ipopt)` | +42.77 | +81.71 |
-| **`max(三者)`** | **+76.76** | **+121.41** |
-
-两个结论：
-
-- **冷启动的 Ipopt 优于热启动的 Ipopt**，所以热启动**不能替代**独立跑一路；
-- 两者**落在不同盆地**，因此同时保留才是最划算的。
-
-因此"只在有把握时才跑 Ipopt"并不可取：那个判据恰好会跳掉真正带来收益的那些求解。
-
-#### 5.2 实测一次（发行包、`--mode parallel`）
-
-```
-完成 1 个，出解 1 个，总用时 69 s
-取优来源分布: {'uno': 1}
-末质量 4698.394 kg   墙钟 69.1 s
-  uno    ok  wall_s=69.1   SOUFFLE[solve]: preset=filtersqp opt_status=2 sol_status=0 iters=5721
-  ipopt  ok  wall_s=36.7   SOUFFLE[ipopt-solve]: status=0 inform=1 iters=781 callbacks=782
-```
 
 ---
 
