@@ -120,7 +120,7 @@ EMTGv9.exe my_case.emtgopt
 |---|---|---|
 | `SOUFFLE_NLP_SOLVER` | `Uno` | `Uno`, or `SNOPT` when the build enables it |
 | `SOUFFLE_UNO_ROOT` | baked in at configure time | where `libuno.dll` lives |
-| `SOUFFLE_UNO_PRESET` | `filtersqp` | Uno preset: `filtersqp`, `ipopt`, `funnel`, `Penalty` |
+| `SOUFFLE_UNO_PRESET` | `filtersqp` | Uno preset: `filtersqp`, `ipopt`, `funnel`, `Penalty`. Values are **case-sensitive** |
 
 Switch to the interior-point method without rebuilding:
 
@@ -142,6 +142,8 @@ item-by-item mapping between the solver interface and EMTG's data structures, ho
 termination conditions are handled, and the key constraints confirmed during development.
 
 ---
+
+
 
 ### 1. Overall structure
 
@@ -304,38 +306,14 @@ Field meanings:
 
 ---
 
-### 8. Known leftovers
-
-| Item | Location | Reason |
-|---|---|---|
-| member name `mySNOPT` | `monotonic_basin_hopping.*`, `FilamentWalker.*`, `problem.cpp` | the type is now `NLP_interface*`, but the member name was kept. Purely a naming matter; changing it touches many places for no functional gain |
-| the text `"SNOPT has crashed ..."` | `monotonic_basin_hopping.cpp:362` | MBH's try-catch fallback branch; it triggers when **a solve throws**, independently of the solver choice |
-| the file name `.SNOPTcrash` | as above, `:366` / `:371` | changing it would affect external tooling that archives or scans for that name |
-
----
-
-### 9. Reproduction and verification entry points
-
-| Script | Purpose |
-|---|---|
-| `_probe\smoke_uno.c` | MinGW-side Uno C API smoke test |
-| `_probe\msvc_probe.c` | MSVC dynamic-loading smoke test (architecture feasibility check) |
-| `_probe\dump_options.c` | dump every Uno option name and type |
-| `_probe\build_uno.ps1` | configure + build (the Uno build) |
-| `_probe\run_build.ps1` | incremental build only |
-| `_probe\gui_window_check.py` | verify by window title that the GUI really opened |
-| `_probe\find_encoding_damage.py` | check that files containing non-ASCII are valid UTF-8 |
-
----
-
-### 10. Union search (united)
+### 8. Union search (united)
 
 A single solver stops in whichever local basin it reaches first. Uno and Ipopt differ in their
 starting directions, trust-region strategies and stopping criteria, and **measurements show they
 land in different places**, so running both at once and keeping the better answer pays off against
 either one alone.
 
-#### 10.1 Why it must be two processes
+#### 8.1 Why it must be two processes
 
 Uno and Ipopt each ship **same-named MinGW runtimes built by different toolchains**
 (`libwinpthread-1.dll`, `libgcc_s_seh-1.dll`, `libgomp-1.dll`, `libatomic-1.dll`,
@@ -347,7 +325,7 @@ arrangement was measured to exit at Ipopt's first iteration with `0xc06d007f`
 Union search is therefore orchestrated by `united/united.py` as **separate processes**, rather than
 by switching solvers inside one `run_NLP`.
 
-#### 10.2 Two orchestrations
+#### 8.2 Two orchestrations
 
 | `--mode` | Orchestration | Wall clock per task |
 |---|---|---|
@@ -358,12 +336,12 @@ by switching solvers inside one `run_NLP`.
 different basins**, and the best of three averages about **19 kg** more than
 `max(Uno, separate Ipopt)` — the only cost being one extra serial Ipopt leg.
 
-#### 10.3 Wall clock is set by the per-solve limit
+#### 8.3 Wall clock is set by the per-solve limit
 
 Wall clock ≈ `max(MBH budget, per-solve limit)`, because MBH cannot interrupt a solve that is
 already running. The real knob is the **per-solve limit**, not the total budget.
 
-#### 10.4 One binary, two solvers
+#### 8.4 One binary, two solvers
 
 The release ships a single `SOUFFLE.exe`. `united.py` uses `SOUFFLE_NLP_SOLVER` to decide which
 solver each leg runs, and `SOUFFLE_IPOPT_LIB` to point at the directory holding `ipopt-3.dll`. Data
@@ -598,27 +576,14 @@ absolute path. `-SkipGUI` produces a slim package without the GUI (direct-run mo
 
 ---
 
-### 5. Known issues and cautions
-
-| Issue | Notes |
-|---|---|
-| `.SNOPTcrash` file name | see §7, a legacy name; its triggering is unrelated to the solver choice |
-| Exit codes are unreliable in long piped runs | the tier-2 driver scripts now use `*> $log` file redirection plus `PYTHONUNBUFFERED=1`; previously a 30-minute run through a pipe reported a bogus `exit=-1` and lost all buffered output |
-| an external project's `config.EMTG_BIN` | hard-coded to point at the original EMTG, with no environment-variable override. `tier2_driver.py` overrides it in memory and **does not modify that project** |
-| `SOUFFLE_UNO_PRESET` case | the value must be upper case, otherwise it is silently rejected |
-| `SNOPTcrash` during the probe phase | a normal by-product of first-round NLP divergence |
-| **Always specify UTF-8 when writing files** | PowerShell on this machine defaults to ANSI (GBK); using `Set-Content` without `-Encoding UTF8` will **permanently corrupt** UTF-8 Chinese text. See §11 |
-
----
-
-### 6. Union search measurements
+### 5. Union search measurements
 
 SOUFFLE now carries **two solvers** (Uno and Ipopt). They **cannot run in the same process**: each
 ships same-named MinGW runtimes built by different toolchains, Windows resolves DLLs by name, and
 the second-loaded side fails with `0xc06d007f`. Union search therefore orchestrates the two as
 **separate processes**.
 
-#### 6.1 Why take the best of three
+#### 5.1 Why take the best of three
 
 Across four mission families and 130 cases in total, differences from the SNOPT reference (final
 mass, kg):
@@ -641,7 +606,7 @@ Two conclusions:
 This does not support the earlier idea of "only run Ipopt when we are confident" — that criterion
 would skip exactly the solves that bring the real gains.
 
-#### 6.2 One measured run (release package, `--mode parallel`)
+#### 5.2 One measured run (release package, `--mode parallel`)
 
 ```
 Completed 1, produced 1 solution, total time 69 s

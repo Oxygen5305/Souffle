@@ -108,7 +108,7 @@ EMTGv9.exe my_case.emtgopt
 |---|---|---|
 | `SOUFFLE_NLP_SOLVER` | `Uno` | `Uno`；若构建时启用了 SNOPT，也可填 `SNOPT` |
 | `SOUFFLE_UNO_ROOT` | 配置时写入 | `libuno.dll` 所在目录 |
-| `SOUFFLE_UNO_PRESET` | `filtersqp` | Uno 预设：filtersqp、ipopt、funnel、Penalty |
+| `SOUFFLE_UNO_PRESET` | `filtersqp` | Uno 预设：filtersqp、ipopt、funnel、Penalty。取值**区分大小写** |
 
 无需重新编译即可切换到内点法：
 
@@ -127,6 +127,8 @@ EMTGv9.exe my_case.emtgopt
 回调与终止条件的处理，以及开发过程中确认的关键约束。
 
 ---
+
+
 
 ### 1. 总体结构
 
@@ -279,36 +281,12 @@ SOUFFLE[solve]: preset=filtersqp opt_status=4 sol_status=0 iters=2012 cpu=23.79 
 
 ---
 
-### 8. 已知残留
-
-| 项 | 位置 | 原因 |
-|---|---|---|
-| 成员名 `mySNOPT` | `monotonic_basin_hopping.*`、`FilamentWalker.*`、`problem.cpp` | 类型已改为 `NLP_interface*`，但成员名沿用。纯命名问题，改动面大且无功能收益 |
-| 文本 `"SNOPT has crashed ..."` | `monotonic_basin_hopping.cpp:362` | MBH 的 try-catch 兜底分支，触发条件是**求解抛异常**，与求解器选择无关 |
-| 文件名 `.SNOPTcrash` | 同上，`:366` / `:371` | 改它会影响按该文件名做归档/扫描的外部流程 |
-
----
-
-### 9. 复现与验证入口
-
-| 脚本 | 用途 |
-|---|---|
-| `_probe\smoke_uno.c` | MinGW 侧 Uno C API 冒烟测试 |
-| `_probe\msvc_probe.c` | MSVC 动态加载冒烟测试（架构可行性验证） |
-| `_probe\dump_options.c` | 导出 Uno 全部选项名与类型 |
-| `_probe\build_uno.ps1` | 配置 + 编译（Uno 版） |
-| `_probe\run_build.ps1` | 仅增量编译 |
-| `_probe\gui_window_check.py` | 按窗口标题验证 GUI 是否真的打开 |
-| `_probe\find_encoding_damage.py` | 校验含非 ASCII 的文件是否为有效 UTF-8 |
-
----
-
-### 10. 联合寻优（united）
+### 8. 联合寻优（united）
 
 单个求解器会停在它先走到的那个局部盆地。Uno 与 Ipopt 的起步方向、信赖域策略和停止判据都不同，
 **实测它们落点不同**，因此同时跑两者、取较优解，比任何一个单独跑都划算。
 
-#### 10.1 为什么必须是两个进程
+#### 8.1 为什么必须是两个进程
 
 Uno 与 Ipopt 各自携带**同名但不同工具链编译的 MinGW 运行时**
 （`libwinpthread-1.dll`、`libgcc_s_seh-1.dll`、`libgomp-1.dll`、`libatomic-1.dll`、
@@ -318,7 +296,7 @@ Uno 与 Ipopt 各自携带**同名但不同工具链编译的 MinGW 运行时**
 
 所以联合寻优由 `united/united.py` 编排**独立进程**，而不是在同一个 `run_NLP` 里切换求解器。
 
-#### 10.2 两种编排
+#### 8.2 两种编排
 
 | `--mode` | 编排 | 单任务墙钟 |
 |---|---|---|
@@ -328,12 +306,12 @@ Uno 与 Ipopt 各自携带**同名但不同工具链编译的 MinGW 运行时**
 `both` 值得作默认：冷启动的 Ipopt 与热启动的 Ipopt **落在不同盆地**，三者取优相对
 `max(Uno, 独立 Ipopt)` 平均多拿约 **19 kg**，代价只是多串一段 Ipopt。
 
-#### 10.3 墙钟由单次求解上限决定
+#### 8.3 墙钟由单次求解上限决定
 
 墙钟 ≈ `max(MBH 预算, 单次求解上限)`，因为 MBH 打断不了进行中的求解。真正的旋钮是
 **单次求解上限**，不是总预算。
 
-#### 10.4 一个二进制、两种求解器
+#### 8.4 一个二进制、两种求解器
 
 发行包只带一个 `SOUFFLE.exe`。`united.py` 通过 `SOUFFLE_NLP_SOLVER` 决定每一路跑哪个求解器，
 `SOUFFLE_IPOPT_LIB` 指向 `ipopt-3.dll` 所在目录。算例里的数据路径由 `geometry.py`
@@ -550,24 +528,11 @@ powershell -File package\package_souffle.ps1 -Force
 
 ---
 
-### 5. 已知问题与注意事项
-
-| 问题 | 说明 |
-|---|---|
-| `.SNOPTcrash` 文件名 | 见 §7，属历史命名，触发与求解器选择无关 |
-| 长时管道下退出码不可靠 | 二级驱动脚本已改为 `*> $log` 文件重定向 + `PYTHONUNBUFFERED=1`；此前 30 分钟运行配合管道会给出虚假的 `exit=-1` 并丢失全部缓冲输出 |
-| 外部工程的 `config.EMTG_BIN` | 硬编码指向原版 EMTG，无环境变量覆盖。用 `tier2_driver.py` 在内存中覆盖，**不修改该工程** |
-| `SOUFFLE_UNO_PRESET` 大小写 | 值必须大写，否则被静默拒绝 |
-| 探测阶段的 `SNOPTcrash` | 首轮 NLP 发散的正常副产物 |
-| **写文件务必指定 UTF-8** | 本机 PowerShell 默认 ANSI(GBK)，用 `Set-Content` 不带 `-Encoding UTF8` 会**永久破坏** UTF-8 中文。见 §11 |
-
----
-
-### 6. 联合寻优实测
+### 5. 联合寻优实测
 
 SOUFFLE 现在带**两个求解器**（Uno 与 Ipopt）。它们**不能同进程运行**：两者各自携带同名但不同工具链编译的 MinGW 运行时，Windows 按名字解析 DLL，后加载的一方会以 `0xc06d007f` 失败。因此联合寻优把两者作为**独立进程**编排。
 
-#### 6.1 为什么取三者之优
+#### 5.1 为什么取三者之优
 
 四族任务、共 130 个算例，与 SNOPT 基准的差值（末质量，kg）：
 
@@ -587,7 +552,7 @@ SOUFFLE 现在带**两个求解器**（Uno 与 Ipopt）。它们**不能同进�
 
 这不支持早期"只在有把握时才跑 Ipopt"的思路——那个判据恰好会跳掉真正带来收益的那些求解。
 
-#### 6.2 实测一次（发行包、`--mode parallel`）
+#### 5.2 实测一次（发行包、`--mode parallel`）
 
 ```
 完成 1 个，出解 1 个，总用时 69 s
