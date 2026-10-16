@@ -5,12 +5,11 @@
 [![Platform](https://img.shields.io/badge/platform-Windows%20x64-lightgrey)](https://www.microsoft.com/en-us/windows)
 [![Built with](https://img.shields.io/badge/built%20with-MSVC%20%2B%20NMake-lightgrey)](https://visualstudio.microsoft.com/)
 
-把 NASA 的 [EMTG](https://github.com/nasa/EMTG) 的内层非线性优化器，从商业求解器 **SNOPT**
-换成开源求解器：默认 **[Uno](https://github.com/cvanaret/Uno)**，同时集成
-**[Ipopt](https://github.com/coin-or/Ipopt)**。MGALT 转录不变、任务建模不变、输出不变，
-**且不再需要任何商业许可证**。
+把 NASA 的 [EMTG](https://github.com/nasa/EMTG) 的内层非线性优化器替换为开源求解器：默认
+**[Uno](https://github.com/cvanaret/Uno)**，同时集成 **[Ipopt](https://github.com/coin-or/Ipopt)**。
+MGALT 转录不变、任务建模不变、输出不变，**且不再需要任何商业许可证**。
 
-> English docs: [README.md](README.md)
+> English documentation: [README.md](README.md)
 
 | 组成 | 说明 |
 |---|---|
@@ -21,10 +20,10 @@
 
 ## 为什么要做这个
 
-SNOPT 是商业软件：试用许可会到期，其运行时也不能再分发。而 EMTG 树内没有第二个 NLP 求解器，
+SNOPT 是商业软件：试用许可会到期，其运行时也不能再分发。EMTG 本身不带第二个 NLP 求解器，
 所以许可一到期，工具就无法使用。
 
-SOUFFLE 在不触碰 EMTG 的物理模型、转录方式和任务定义的前提下，去掉这个依赖——新增的只有求解器接口。
+SOUFFLE 去掉这个依赖：EMTG 的物理模型、转录方式和任务定义保持不变，新增的只有求解器接口。
 
 ## 特性
 
@@ -41,8 +40,8 @@ SOUFFLE 在不触碰 EMTG 的物理模型、转录方式和任务定义的前提
   末质量平均比"Uno 与冷 Ipopt 各自取优"再多约 **19 kg**，比 Uno 单独多约 **87 kg**。
   它同时**比 SNOPT 版快得多**：单次求解上限从 60 s 降到 15 s / 8 s，一次运行约 62 s，
   而出厂算例设置最长 900 s。并行那一路还**不额外花时间**：Uno 要 62 s、Ipopt 要 33 s，
-  但一起跑仍是 62 s（Ipopt 藏在 Uno 后面）。之所以必须独立进程，是因为两个求解器各自携带**同名但不同工具链编译的 MinGW 运行时**，
-  而 Windows 按名字解析 DLL。
+  但一起跑仍是 62 s（Ipopt 跑在 Uno 后面）。必须使用独立进程而非同进程：两个求解器各自携带
+  **同名但不同工具链编译的 MinGW 运行时**，而 Windows 按名字解析 DLL。
 - **同一个图形界面** —— PyEMTG 可编辑并运行 `.emtgopt`、绘制 `.emtg` 结果，与 SNOPT 版一致。
 - **同一套物理模型** —— MGALT、前向/后向打靶、匹配点约束、journey/phase 树、
   Monotonic Basin Hopping 全局搜索，全部原样保留。
@@ -78,7 +77,7 @@ cmake -S . -B build -G 'NMake Makefiles' -DCMAKE_BUILD_TYPE=Release `
 cmake --build build          # 产物: build\src\EMTGv9.exe
 ```
 
-命令中没有任何 SNOPT 路径。
+该构建不涉及任何 SNOPT 目录、头文件或库。
 
 ### 编译开关
 
@@ -123,8 +122,8 @@ EMTGv9.exe my_case.emtgopt
 
 ## 设计
 
-本节说明 **求解器如何接入 EMTG**：动态加载层、求解器接口与 EMTG 数据结构之间的逐项映射、
-回调与终止条件的处理，以及开发过程中确认的关键约束。
+求解器接入 EMTG 的方式：动态加载层、求解器接口与 EMTG 数据结构之间的映射、回调与终止条件的
+处理，以及经实测确认的关键约束。
 
 ---
 
@@ -148,13 +147,13 @@ EMTG 内层 (MBH / FilamentWalker / problem.cpp)
            libuno.dll           ← Uno 2.9.0（MinGW 构建，C ABI）
 ```
 
-**为什么必须动态加载**：原版 EMTG 用 MSVC 构建，而 Uno 的 Windows 发行包是 MinGW 格式
-（导入库为 `libuno.dll.a`），MSVC 链接器无法直接链接。由于 `libuno.dll` 导出的是
-**未修饰的 C 符号**，C ABI 跨编译器稳定，因此改用运行时 `LoadLibraryExW` + `GetProcAddress`，
+**必须动态加载**：原版 EMTG 用 MSVC 构建，而 Uno 的 Windows 发行包是 MinGW 格式
+（`libuno.dll.a`），MSVC 链接器无法使用。由于 `libuno.dll` 导出的是**未修饰的 C 符号**，
+C ABI 跨编译器稳定，因此 SOUFFLE 在运行时通过 `LoadLibraryExW` + `GetProcAddress` 解析入口，
 **不链接任何 Uno 库**。
 
-**代价**：需要运行时定位 DLL（`SOUFFLE_UNO_ROOT`），且缺少编译期符号校验，
-因此启动时必须显式报错而非静默失败。
+**代价**：必须在运行时定位 `libuno.dll`（`SOUFFLE_UNO_ROOT`），且缺少编译期符号校验，
+因此启动时显式报错而非静默失败。
 
 ---
 
@@ -170,8 +169,8 @@ EMTG 内层 (MBH / FilamentWalker / problem.cpp)
 | `NLP_solver_factory.h/.cpp` | **新增**：`create_NLP_solver()` 返回 `std::unique_ptr<NLP_interface>` |
 | `problem.cpp` | 三处实例化点（MBH / NLP / FilamentWalker）改走工厂 |
 
-**原则**：原 EMTG 的所有行为在 `SOUFFLE_NLP_SOLVER=SNOPT` 时必须保持不变。
-同一个可执行文件内保留 SNOPT 路径，便于对照。
+**原则**：在 `SOUFFLE_NLP_SOLVER=SNOPT` 时，原 EMTG 的所有行为保持不变。
+同一个可执行文件内保留 SNOPT 路径，便于两种求解器对照。
 
 ---
 
@@ -193,7 +192,7 @@ X_unscaled[i] = X_scaled[i] * X_scale_factors[i] + X_lowerbounds[i]
 推导依据：EMTG 内部以 `X_unscaled = X_scaled * scale + Xlower` 定义缩放，
 因此缩放下界为 0、上界为 `(Xu - Xl) / scale`。
 
-上界必须先除以 `scale` 再传给 Uno：直接传 `X_upperbounds` 会让上界偏大 `scale` 倍，
+必须除以 `scale`：直接传 `X_upperbounds` 会让上界偏大 `scale` 倍，
 求解器随即在物理无意义的区域内搜索，表现为"总能找到解但约束很差"。
 
 ---
@@ -209,8 +208,8 @@ EMTG 把约束分成若干段（F 向量），并提供**稀疏雅可比** `G`�
 | 雅可比非零元数 | `G.size()` 或按 `constraint_jacobian_source` 结构体 |
 | 行/列索引 | `iGfun` / `jGvar`（EMTG 已提供） |
 
-**关键**：Uno 会对雅可比做**压缩**（去掉显式的零元）。因此回调中必须按
-`constraint_jacobian_source` 的映射把 Uno 的紧凑索引还原回 EMTG 的 `G` 位置，
+**关键**：Uno 会对雅可比做**压缩**，去掉显式的零元。因此回调中按
+`constraint_jacobian_source` 的映射把 Uno 的紧凑索引还原回 EMTG 的 `G` 位置；
 否则雅可比错位，求解器仍能"跑完"但收敛到错误点。
 
 ---
@@ -231,11 +230,10 @@ EMTG 把约束分成若干段（F 向量），并提供**稀疏雅可比** `G`�
 **必须传 `nullptr`**。
 
 **原因（实测）**：注册终止回调后，每次求解都返回 `opt_status=5`（`UNO_USER_TERMINATION`），
-且 `iters=1` —— 即第一次迭代就被终止。诊断显示回调内
-`elapsed=0 limit=60 stop_on_goal=0`，且它从未返回非零值，说明是 Uno 侧对该回调的调用约定
-与我们的实现不匹配。
+且 `iters=1`，即第一次迭代就被终止。回调内 `elapsed=0 limit=60 stop_on_goal=0`，且它从未
+返回非零值：Uno 侧对该回调的调用约定与本实现不匹配。
 
-改为传 `nullptr` 后，迭代数从 1 直接升到 16000，`filtersqp` 的成功率变为 111/138。
+改为传 `nullptr` 后，迭代数从 1 升到 16000，`filtersqp` 的成功率变为 111/138。
 
 > 终止条件改由 `time_limit` 与 `max_iterations` 控制，不再依赖回调。
 
@@ -253,8 +251,8 @@ std::unique_ptr<NLP_interface> create_NLP_solver();
 2. 未设置时用编译期默认值（CMake `SOUFFLE_DEFAULT_SOLVER`，本包为 `Uno`）
 3. 值为 `Uno` → `Souffle_interface`；`SNOPT` → `SNOPT_interface`；其他 → 报错退出
 
-`Souffle_interface` 内部再读 `SOUFFLE_UNO_ROOT` 定位 `libuno.dll`，
-未设置时回退到编译期宏 `SOUFFLE_UNO_ROOT_DEFAULT`。
+`Souffle_interface` 再读 `SOUFFLE_UNO_ROOT` 定位 `libuno.dll`，未设置时回退到编译期宏
+`SOUFFLE_UNO_ROOT_DEFAULT`。
 
 ---
 
@@ -266,8 +264,8 @@ std::unique_ptr<NLP_interface> create_NLP_solver();
 SOUFFLE[solve]: preset=filtersqp opt_status=4 sol_status=0 iters=2012 cpu=23.79 f=-0.864531
 ```
 
-**这一行不受 `quiet_NLP` 控制**。原因：`quiet_NLP 1` 会吞掉 EMTG 自身的求解输出，
-导致无法判断 Uno 是否在工作（曾因此误判"求解器没跑"）。因此该诊断行无条件输出。
+**这一行不受 `quiet_NLP` 控制**。`quiet_NLP 1` 会吞掉 EMTG 自身的求解输出，
+从而无法判断 Uno 是否在工作，因此该诊断行无条件输出。
 
 字段含义：
 
@@ -284,7 +282,7 @@ SOUFFLE[solve]: preset=filtersqp opt_status=4 sol_status=0 iters=2012 cpu=23.79 
 ### 8. 联合寻优（united）
 
 单个求解器会停在它先走到的那个局部盆地。Uno 与 Ipopt 的起步方向、信赖域策略和停止判据都不同，
-**实测它们落点不同**，因此同时跑两者、取较优解，比任何一个单独跑都划算。
+**实测落点不同**，因此同时跑两者并取较优解，比任何一个单独跑都划算。
 
 #### 8.1 为什么必须是两个进程
 
@@ -303,7 +301,7 @@ Uno 与 Ipopt 各自携带**同名但不同工具链编译的 MinGW 运行时**
 | `parallel` | Uno ‖ 独立 Ipopt → 取优 | ≈ 62 s |
 | `both`（默认） | 上面两路，再以 **Uno 的解**热启动一次 Ipopt → 三者取优 | ≈ 100 s |
 
-`both` 值得作默认：冷启动的 Ipopt 与热启动的 Ipopt **落在不同盆地**，三者取优相对
+默认取 `both`：冷启动的 Ipopt 与热启动的 Ipopt **落在不同盆地**，三者取优相对
 `max(Uno, 独立 Ipopt)` 平均多拿约 **19 kg**，代价只是多串一段 Ipopt。
 
 #### 8.3 墙钟由单次求解上限决定
@@ -323,7 +321,7 @@ Uno 与 Ipopt 各自携带**同名但不同工具链编译的 MinGW 运行时**
 ## 开发与验证记录
 
 SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Mission Trajectory Generator），
-把内层非线性优化器从 **SNOPT** 换成开源求解器 **[Uno](https://github.com/cvanaret/Uno)**，
+把内层非线性优化器 **SNOPT** 替换为开源求解器 **[Uno](https://github.com/cvanaret/Uno)**，
 以便在 SNOPT 试用许可到期后继续使用。
 
 
@@ -338,8 +336,8 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 | **有对应 EMTG chaperone 的回调** | `uno_set_solver_callbacks(...)`：每轮迭代可得 primal、可行性、稳定性、互补性残差 |
 | 不需要 Hessian（EMTG 不提供） | 实测 Uno 自动回退：`An exact Hessian was not provided, setting an L-LBFGS Hessian instead` |
 | 子问题求解器与线性代数齐备，**无许可限制** | `Uno\deps\`：BQPD、HiGHS、MUMPS、METIS、OpenBLAS、SPRAL；`libhsl.dll` 是官方文档所述的免授权 dummy 版 |
-| MinGW 侧端到端跑通 | `_probe\smoke_uno.c`：Uno 2.9.0 正确解出 NLP（`x=(1,0)`、目标 `998` 即理论最优、可行性 `0`），`filtersqp` 生效，迭代回调触发 |
-| **MSVC 可驱动 Uno**（架构关键） | `_probe\msvc_probe.c`：MSVC 编译，`LoadLibraryExW` + `GetProcAddress` 全部成功，`uno version 2.9.0`，solver/model 创建成功 |
+| MinGW 侧端到端跑通 | 一个独立的 Uno 2.9.0 程序正确解出测试 NLP（`x=(1,0)`、目标 `998` 即理论最优、可行性 `0`）；`filtersqp` 生效，迭代回调触发 |
+| **MSVC 可驱动 Uno**（架构关键） | 一个用 MSVC 编译的探针程序：`LoadLibraryExW` + `GetProcAddress` 全部成功，`uno version 2.9.0`，solver/model 创建成功 |
 
 ---
 
@@ -349,13 +347,12 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 
 **原版 EMTG 是用 MSVC + NMake 构建的**，不是 MinGW：
 
-- `EMTG\build\CMakeCache.txt` → `CMAKE_CXX_COMPILER = D:\Visual_Studio\VC\Tools\MSVC\14.40.33807\bin\Hostx64\x64\cl.exe`
-- `CMAKE_GENERATOR = NMake Makefiles`
-- Boost 用 `libboost_filesystem-vc143-*`（MSVC ABI）
-- cmake 用 VS 自带：`D:\Visual_Studio\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe`
-- Windows SDK（参考构建使用 `10.0.28000.0`，亦可用便携版）
+- 编译器 MSVC v143（`cl.exe`），生成器为 `NMake Makefiles`
+- Boost 按 MSVC ABI 构建（`libboost_filesystem-vc143-*`）
+- CMake 使用 Visual Studio 自带版本
+- Windows SDK 10.0.28000.0（亦可用便携版）
 
-而 **Uno 的 Windows 预编译包是 MinGW 格式**（`libuno.dll.a`），MSVC 链接器无法直接链接。
+**Uno 的 Windows 预编译包是 MinGW 格式**（`libuno.dll.a`），MSVC 链接器无法使用。
 
 #### 2.2 决策：保持 MSVC，通过**动态加载**调用 Uno
 
@@ -364,14 +361,14 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 
 **收益**
 
-- Boost vc143、SPICE、SNOPT、Windows SDK 全部沿用，零迁移成本
-- 同一个可执行文件内即可保留 SNOPT 对照路径
-- 不需要 MinGW 工具链参与主构建
+- Boost vc143、SPICE、SNOPT、Windows SDK 全部沿用不变
+- 同一个可执行文件内保留 SNOPT 对照路径
+- 主构建不需要 MinGW 工具链
 
 **代价**
 
 - 需要在运行时定位 `libuno.dll`（由 `SOUFFLE_UNO_ROOT` 指定）
-- 缺少编译期符号校验，靠启动时的显式报错兜底
+- 缺少编译期符号校验，改由启动时的显式报错兜底
 
 #### 2.3 代码结构
 
@@ -392,7 +389,7 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 | `SOUFFLE_UNO_PRESET` | `filtersqp` | 也可设 `ipopt` / `funnel` / `Penalty` |
 
 > ⚠️ `SOUFFLE_UNO_PRESET` 的值**必须大写**（例如 logger 用 `SILENT`）。
-> 小写会被 Uno 静默拒绝并回退默认，曾导致 22 MB / 373,772 行日志、运行时间被 I/O 主导。
+> 小写会被 Uno 静默拒绝并回退默认，产生 22 MB / 373,772 行日志、运行时间被 I/O 主导。
 
 ---
 
@@ -405,17 +402,18 @@ SOUFFLE 基于 NASA 的 [EMTG](https://github.com/nasa/EMTG)（Evolutionary Miss
 | `filterSQP`（默认） | **111/138 `UNO_SUCCESS`** | 有 |
 | `ipopt` | 33/263 | 无 |
 
-由表格可知，IPOPT预设性能并不突出、FilterSQP预设性能更优。
+`ipopt` 预设 33/263 的收敛率且无可行解，与 `filterSQP` 的 111/138 形成明显对比。Uno 的
+`ipopt` 预设使用与原生 IPOPT 相同的算法，性能也与原生 IPOPT 相当（见 Uno 官方文档），
+因此这一差距反映的是算法与 EMTG 的适配性，而非 Uno 的实现。
 
-Uno的IPOPT预设是指使用IPOPT相同的算法下进行优化，与原生IPOPT的性能极其相似（见Uno官方文档），所以也证明了IPOPT对EMTG的适配性不强。
-
-其原因可能是IPOPT在序列固定、变量少、内点法在初始可行时才有很好的性能，但LTGA广泛寻优不具备这类条件。而SQP/filter 对不可行初始点更鲁棒，且和 EMTG 的解析梯度、稀疏结构天然匹配。
+内点法在序列固定、变量少、初始点可行时表现最好，而 LTGA 广泛寻优不具备这些条件；
+SQP/filter 对不可行初始点更鲁棒，且与 EMTG 的解析梯度、稀疏结构天然匹配。
 
 #### 3.2 与 SNOPT 的同口径对比（2044 窗口，E-V-V-E-U）
 
 **必须所有设置对齐才可比。**
 
-对齐后（`run_evveu\RETRY_t40_aligned.emtgopt`，与基准算例的选项逐项一致）：
+对齐验证所用的算例，其选项与基准算例逐项一致：
 
 | 参数 | 对齐值 | 基准 |
 |---|---|---|
@@ -439,14 +437,14 @@ Uno的IPOPT预设是指使用IPOPT相同的算法下进行优化，与原生IPOP
 | 发射日 | 2044-02-25 | 2044-03-14 |
 | MBH 预算 | 5400 s | 更长 |
 
-**结论（谨慎）**：在转录、物理模型、初始质量、离散化、容差全部对齐的条件下，
-SOUFFLE/Uno 的末质量比同档 SNOPT 基准高 **160.3 kg（+3.61%）**，证明SOUFFLE有时能找到比SNOPT更优的解。
+**结论**：在转录、物理模型、初始质量、离散化、容差全部对齐的条件下，SOUFFLE/Uno 的末质量比
+同档 SNOPT 基准高 **160.3 kg（+3.61%）**：本算例中 SOUFFLE 能找到比 SNOPT 更优的解。
 
 #### 3.3 天王星行星际转移序列广泛寻优实测（真实工程流水线）
 
-用一条**独立的**二级流水线（`code\emtg_pipeline.py`）、**独立的** case 定义
-（`emtg\tier2_plan_2044_window.json`：2044 窗口，`t0=16144.5`，`tofs=[150,380,52,1610]`，
-TOF 区间 [2136.7, 2374.1]），仅把 `config.EMTG_BIN` 在内存中指向 SOUFFLE：
+使用一条**独立的**二级工程流水线与它**独立的** case 定义 —— 2044 窗口，`t0=16144.5`，
+`tofs=[150,380,52,1610]`，TOF 区间 [2136.7, 2374.1] —— 仅在内存中把流水线的可执行文件路径
+指向 SOUFFLE：
 
 | | **SOUFFLE/Uno** | **SNOPT 基准** `b2044_EVVEU_0416_01122_t65_c15` |
 |---|---|---|
@@ -457,9 +455,10 @@ TOF 区间 [2136.7, 2374.1]），仅把 `config.EMTG_BIN` 在内存中指向 SOU
 
 求解器统计：23 次 Uno 求解，12 次 "New global best"，最坏约束违反 **6.4e-13**。
 
-**两者几乎重合** —— 这是最强的一致性证据：走真实流水线、真实 case 定义，未手工调任何参数。
+**两者结果几乎重合** —— 本文档中最强的一致性证据：走真实流水线、真实 case 定义，未手工调任何
+参数。
 
-驱动脚本：`tier2_driver.py`（**不修改被驱动的工程**，通过覆盖 `config.EMTG_BIN` 实现）。
+驱动端不修改被驱动的工程，仅在内存中覆盖可执行文件路径。
 
 ---
 
@@ -486,10 +485,10 @@ RESULT : GUI opened and closed cleanly
 
 #### 4.2 可搬迁设计
 
-GUI 需要**绝对路径**（`PyEMTG.options`），而包要能整体搬走——两者本质冲突。
-解法：**启动器每次启动时按自身位置重新生成 `PyEMTG.options`**。
-包内 `.emtgopt` 则全部使用相对路径（`../Universe_EVVEU`、`../HardwareModels/`、`../results`），
-由 EMTG 按其工作目录解析（启动器以 `bin\` 为工作目录）。
+GUI 需要**绝对路径**（`PyEMTG.options`），而包要能整体搬走。启动器兼顾两者：
+**每次启动时按自身位置重新生成 `PyEMTG.options`**。包内 `.emtgopt` 使用相对路径
+（`../Universe_EVVEU`、`../HardwareModels/`、`../results`），由 EMTG 按其工作目录解析
+（启动器把工作目录设为 `bin\`）。
 
 #### 4.3 目录结构
 
@@ -510,11 +509,10 @@ Souffle\
 ```
 
 **默认构建完全不需要 SNOPT**：`SOUFFLE_WITH_SNOPT` 默认为 `OFF`，此时
-`SNOPT_interface.cpp` 不参与编译、不引用任何 SNOPT 头文件、
-**可执行文件也不导入 `snopt7.dll`**（已用 `dumpbin /imports` 与
-"目录内无任何 snopt 文件仍能跑完" 双重验证）。
-因此既不需要 SNOPT 安装，也不需要许可证。
-开启 `SOUFFLE_WITH_SNOPT=ON` 才会恢复 SNOPT 对照路径，那时才需要自备 SNOPT 与许可证。
+`SNOPT_interface.cpp` 不参与编译、不引用任何 SNOPT 头文件、**可执行文件也不导入
+`snopt7.dll`** —— 已用 `dumpbin /imports` 与"目录内无任何 SNOPT 文件仍能跑完"双重验证。
+因此既不需要 SNOPT 安装，也不需要许可证。开启 `SOUFFLE_WITH_SNOPT=ON` 才会恢复 SNOPT
+对照路径，那时才需要自备 SNOPT 与许可证。
 
 #### 4.4 打包
 
@@ -530,7 +528,7 @@ powershell -File package\package_souffle.ps1 -Force
 
 ### 5. 联合寻优实测
 
-SOUFFLE 现在带**两个求解器**（Uno 与 Ipopt）。它们**不能同进程运行**：两者各自携带同名但不同工具链编译的 MinGW 运行时，Windows 按名字解析 DLL，后加载的一方会以 `0xc06d007f` 失败。因此联合寻优把两者作为**独立进程**编排。
+SOUFFLE 带**两个求解器**（Uno 与 Ipopt）。它们**不能同进程运行**：两者各自携带同名但不同工具链编译的 MinGW 运行时，Windows 按名字解析 DLL，后加载的一方会以 `0xc06d007f` 失败。因此联合寻优把两者作为**独立进程**编排。
 
 #### 5.1 为什么取三者之优
 
@@ -550,7 +548,7 @@ SOUFFLE 现在带**两个求解器**（Uno 与 Ipopt）。它们**不能同进�
 - **冷启动的 Ipopt 优于热启动的 Ipopt**，所以热启动**不能替代**独立跑一路；
 - 两者**落在不同盆地**，因此同时保留才是最划算的。
 
-这不支持早期"只在有把握时才跑 Ipopt"的思路——那个判据恰好会跳掉真正带来收益的那些求解。
+因此"只在有把握时才跑 Ipopt"并不可取：那个判据恰好会跳掉真正带来收益的那些求解。
 
 #### 5.2 实测一次（发行包、`--mode parallel`）
 
